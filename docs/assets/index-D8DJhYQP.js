@@ -1,9 +1,0 @@
-(function(){const r=document.createElement("link").relList;if(r&&r.supports&&r.supports("modulepreload"))return;for(const e of document.querySelectorAll('link[rel="modulepreload"]'))a(e);new MutationObserver(e=>{for(const n of e)if(n.type==="childList")for(const o of n.addedNodes)o.tagName==="LINK"&&o.rel==="modulepreload"&&a(o)}).observe(document,{childList:!0,subtree:!0});function i(e){const n={};return e.integrity&&(n.integrity=e.integrity),e.referrerPolicy&&(n.referrerPolicy=e.referrerPolicy),e.crossOrigin==="use-credentials"?n.credentials="include":e.crossOrigin==="anonymous"?n.credentials="omit":n.credentials="same-origin",n}function a(e){if(e.ep)return;e.ep=!0;const n=i(e);fetch(e.href,n)}})();function c(){const t=document.getElementById("blog");t&&t.scrollIntoView({behavior:"smooth"})}function s(){document.addEventListener("scrollNext",c)}document.addEventListener("DOMContentLoaded",s);function l(){var r;const t=document.createElement("section");return t.className="highlight-card",t.innerHTML=`
-    <p>
-      Rayane is a machine-learning engineer with experience in research. 
-      He is currently working as a consultant for Euranova.
-      Feel free to email: <a href="mailto:raytexh@gmail.com" class="pulse">raytexh@gmail.com</a> or <a href="mailto:rayane.hachemi@euranova.eu" class="pulse">rayane.hachemi@euranova.eu</a>.
-      His main interests are agentic AI, notably through large language models and reinforcement learning. 
-    </p>
-    <button class="btn-primary" data-action="open-cv">View&nbsp;CV&nbsp;→</button>
-  `,(r=t.querySelector('[data-action="open-cv"]'))==null||r.addEventListener("click",()=>{window.open("/assets/cv.pdf","_blank","noopener")}),t}function u(){const t=document.getElementById("hero");t&&t.insertAdjacentElement("afterend",l())}document.addEventListener("DOMContentLoaded",u);
