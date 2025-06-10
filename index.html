@@ -207,6 +207,44 @@
         function drawWrappedText(text, x, y, maxWidth, lineHeight, font, color, align = 'left') { ctx.font = font; ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = 'top'; const words = text.split(' '); let line = ''; let currentY = y; for (let n = 0; n < words.length; n++) { const testLine = line + words[n] + ' '; const metrics = ctx.measureText(testLine); const testWidth = metrics.width; if (testWidth > maxWidth && n > 0) { ctx.fillText(line, x, currentY); line = words[n] + ' '; currentY += lineHeight; } else { line = testLine; } } ctx.fillText(line, x, currentY); return currentY + lineHeight; }
         function drawRoundedRect(x, y, width, height, radius, fillColor, strokeColor = null, lineWidth = 2) { ctx.beginPath(); ctx.moveTo(x + radius, y); ctx.lineTo(x + width - radius, y); ctx.quadraticCurveTo(x + width, y, x + width, y + radius); ctx.lineTo(x + width, y + height - radius); ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height); ctx.lineTo(x + radius, y + height); ctx.quadraticCurveTo(x, y + height, x, y + height - radius); ctx.lineTo(x, y + radius); ctx.quadraticCurveTo(x, y, x + radius, y); ctx.closePath(); if (fillColor) { ctx.fillStyle = fillColor; ctx.fill(); } if (strokeColor) { ctx.strokeStyle = strokeColor; ctx.lineWidth = lineWidth; ctx.stroke(); } }
         
+        let cachedSkills = null; // Will hold the array of skills
+        let cachedProjects = null; // Will hold the array of projects
+
+        // This is the corrected function. Please ensure it's in your script.
+        async function loadSkillsAndProjectsData() {
+            try {
+                const [skillsResponse, projectsResponse] = await Promise.all([
+                    fetch('documents/skills.md'),
+                    fetch('documents/projects.md')
+                ]);
+
+                // --- Parse Skills ---
+                const skillsText = await skillsResponse.text();
+                cachedSkills = skillsText.split('\n')
+                    .filter(line => line.trim().startsWith('- '))
+                    .map(line => line.trim().substring(2).trim());
+
+                // --- Parse Projects ---
+                const projectsText = await projectsResponse.text();
+                
+                // This corrected line uses a Regular Expression to handle your exact file format.
+                cachedProjects = projectsText.split(/\s*---\s*/) 
+                    .map(projectBlock => {
+                        if (!projectBlock.trim()) return null; // Ignore any empty blocks from trailing separators
+                        const lines = projectBlock.trim().split('\n');
+                        const titleLine = lines.shift(); 
+                        const title = titleLine.replace('## ', '').trim();
+                        const desc = lines.join('\n').trim();
+                        return { title, desc };
+                    }).filter(p => p); // Filter out any null (empty) results
+
+            } catch (error) {
+                console.error("Failed to load skills or projects data:", error);
+                cachedSkills = ["Error loading skills."];
+                cachedProjects = [{title: "Error", desc: "Could not load projects data."}];
+            }
+        }
+
         // MODIFIED: modalMessageText now accepts HTML directly
         function showModal(title, messageHTML) {
             modalTitleElement.textContent = title;
@@ -234,9 +272,120 @@
         function updateScreenInfo() { let screenData = world[currentScreenY][currentScreenX]; let screenName = screenData.name; screenInfoElement.textContent = screenName; }
         function clearCanvas() { ctx.fillStyle = world[currentScreenY][currentScreenX].color; ctx.fillRect(0, 0, canvas.width, canvas.height); }
         function drawPlayer() { ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.beginPath(); ctx.ellipse(player.x + player.width / 2, player.y + player.height + 2, player.width / 2, 4, 0, 0, 2 * Math.PI); ctx.fill(); ctx.fillStyle = player.color; ctx.fillRect(player.x, player.y, player.width, player.height); ctx.strokeStyle = player.outlineColor; ctx.lineWidth = 2; ctx.strokeRect(player.x, player.y, player.width, player.height); ctx.fillStyle = 'black'; const eyeSize = 3; const eyeOffset = 4; if (player.orientationDy < -0.5) { ctx.fillRect(player.x + eyeOffset, player.y + eyeOffset, eyeSize, eyeSize); ctx.fillRect(player.x + player.width - eyeOffset - eyeSize, player.y + eyeOffset, eyeSize, eyeSize); } else if (player.orientationDy > 0.5) { ctx.fillRect(player.x + eyeOffset, player.y + player.height - eyeOffset - eyeSize, eyeSize, eyeSize); ctx.fillRect(player.x + player.width - eyeOffset - eyeSize, player.y + player.height - eyeOffset - eyeSize, eyeSize, eyeSize); } else if (player.orientationDx < -0.5) { ctx.fillRect(player.x + eyeOffset, player.y + eyeOffset, eyeSize, eyeSize); ctx.fillRect(player.x + eyeOffset, player.y + player.height - eyeOffset - eyeSize, eyeSize, eyeSize); } else if (player.orientationDx > 0.5) { ctx.fillRect(player.x + player.width - eyeOffset - eyeSize, player.y + eyeOffset, eyeSize, eyeSize); ctx.fillRect(player.x + player.width - eyeOffset - eyeSize, player.y + player.height - eyeOffset - eyeSize, eyeSize, eyeSize); } else { ctx.fillRect(player.x + eyeOffset, player.y + eyeOffset, eyeSize, eyeSize); ctx.fillRect(player.x + player.width - eyeOffset - eyeSize, player.y + eyeOffset, eyeSize, eyeSize); } }
-        function drawPresentationScreen() { currentInteractiveElements = []; const padding = canvas.width * 0.1; const contentWidth = canvas.width - 2 * padding; let yPos = canvas.height * 0.15; drawText("Welcome!", canvas.width / 2, yPos, `bold clamp(24px, 4vw, 40px) 'Press Start 2P'`, '#ecf0f1', 'center'); yPos += 70; const introText = "I am Rayane Hachemi, a creative and passionate Machine Learning Engineer. This personal website is still under construction. Feel free to explore it!"; yPos = drawWrappedText(introText, canvas.width / 2, yPos, contentWidth, 28, `clamp(16px, 2vw, 20px) 'Roboto'`, '#bdc3c7', 'center'); yPos += 50; const linkFont = `clamp(14px, 1.8vw, 18px) 'Press Start 2P'`; const linkColor = '#3498db'; const linkHoverColor = '#e74c3c'; const linkHeight = 40; const linkSpacing = 20; const links = [ { id: 'email', text: "EMAIL", action: 'open_link', url: 'mailto:rhmi@outlook.fr' }, { id: 'linkedin', text: "LINKEDIN", action: 'open_link', url: 'https://www.linkedin.com/in/rhmi/' }, { id: 'github', text: "GITHUB", action: 'open_link', url: 'https://github.com/rayanehmi' }, { id: 'cv', text: "DOWNLOAD CV", action: 'open_link', url: 'documents/cv.pdf' } ]; links.forEach(link => { ctx.font = linkFont; const textMetrics = ctx.measureText(link.text); const textWidth = textMetrics.width; const linkX = canvas.width / 2 - textWidth / 2; const isHovered = globalMouseX >= linkX && globalMouseX <= linkX + textWidth && globalMouseY >= yPos && globalMouseY <= yPos + linkHeight; drawText(link.text, canvas.width / 2, yPos + linkHeight / 2, linkFont, isHovered ? linkHoverColor : linkColor, 'center', 'middle'); currentInteractiveElements.push({ ...link, x: linkX, y: yPos, width: textWidth, height: linkHeight, isHovered }); yPos += linkHeight + linkSpacing; }); }
-        function drawSkillsProjectsScreen() { currentInteractiveElements = []; const padding = canvas.width * 0.05; const titleFont = `bold clamp(22px, 3vw, 30px) 'Press Start 2P'`; const sectionTitleFont = `bold clamp(18px, 2.5vw, 24px) 'Press Start 2P'`; const itemFont = `clamp(14px, 1.8vw, 18px) 'Roboto'`; const textColor = '#ecf0f1'; const highlightColor = '#f1c40f'; let yPos = canvas.height * 0.1; drawText("Skills & Projects", canvas.width / 2, yPos, titleFont, textColor, 'center'); yPos += 70; let skillsX = padding; let skillsY = yPos; drawText("Skills:", skillsX, skillsY, sectionTitleFont, textColor); skillsY += 40; const skills = ["Machine Learning (RL, Supervised)", "Python (JAX, HPC)", "Cloud (Azure, GCP)", "Gen AI / Agentic AI", "Software Engineering (Git, DevOps CI/CD pipelines)", "Product Ownership"]; skills.forEach(skill => { ctx.font = itemFont; const textMetrics = ctx.measureText(skill); const skillWidth = textMetrics.width; const skillHeight = 25; const textRenderY = skillsY + skillHeight / 2; const isHovered = globalMouseX >= skillsX && globalMouseX <= skillsX + skillWidth + 20 && globalMouseY >= skillsY && globalMouseY <= skillsY + skillHeight; drawText(skill, skillsX + 20, textRenderY, itemFont, isHovered ? highlightColor : textColor, 'left', 'middle'); if(isHovered) drawText(">", skillsX, textRenderY, itemFont, highlightColor, 'left', 'middle'); currentInteractiveElements.push({ id: `skill_${skill}`, type: 'info', text: skill, x: skillsX, y: skillsY, width: skillWidth + 20, height: skillHeight, isHovered }); skillsY += 35; }); let projectsX = canvas.width / 2 + padding / 2; let projectsY = yPos; drawText("Projects:", projectsX, projectsY, sectionTitleFont, textColor); projectsY += 40; const projects = [ { id: 'proj1', title: "LLM Agent Pioneer", desc: "Invited to OpenAI's Researcher Program for making ChatGPT play Minecraft & StarCraft. ", url: '#' }, { id: 'proj2', title: "Defense R&D Project", desc: "Investigated Deep Multi-Agent Reinforcement Learning for defense in R&D. ", url: '#' }, { id: 'proj3', title: "Automated Forum Moderation", desc: "Trained text classifiers to detect harmful messages on a public forum. ", url: '#' } ]; const cardWidth = Math.min(canvas.width * 0.4, 400); const cardHeight = 100; const cardPadding = 15; projects.forEach(proj => { const isHovered = globalMouseX >= projectsX && globalMouseX <= projectsX + cardWidth && globalMouseY >= projectsY && globalMouseY <= projectsY + cardHeight; drawRoundedRect(projectsX, projectsY, cardWidth, cardHeight, 10, isHovered ? '#567a94' : '#405d72', isHovered ? highlightColor : '#6b8ea8'); drawText(proj.title, projectsX + cardPadding, projectsY + cardPadding, `bold clamp(16px, 2vw, 20px) 'Roboto'`, textColor); drawWrappedText(proj.desc, projectsX + cardPadding, projectsY + cardPadding + 30, cardWidth - 2*cardPadding, 20, `clamp(12px, 1.5vw, 16px) 'Roboto'`, '#bdc3c7'); projectsY += cardHeight + 20; }); }
+        function drawPresentationScreen() { currentInteractiveElements = []; const padding = canvas.width * 0.1; const contentWidth = canvas.width - 2 * padding; let yPos = canvas.height * 0.15; drawText("Welcome!", canvas.width / 2, yPos, `bold clamp(24px, 4vw, 40px) 'Press Start 2P'`, '#ecf0f1', 'center'); yPos += 70; const introText = "I am Rayane Hachemi, a creative and passionate Machine Learning Engineer. This personal website is still under construction (by Gemini). Feel free to explore it!"; yPos = drawWrappedText(introText, canvas.width / 2, yPos, contentWidth, 28, `clamp(16px, 2vw, 20px) 'Roboto'`, '#bdc3c7', 'center'); yPos += 50; const linkFont = `clamp(14px, 1.8vw, 18px) 'Press Start 2P'`; const linkColor = '#3498db'; const linkHoverColor = '#e74c3c'; const linkHeight = 40; const linkSpacing = 20; const links = [ { id: 'email', text: "EMAIL", action: 'open_link', url: 'mailto:rhmi@outlook.fr' }, { id: 'linkedin', text: "LINKEDIN", action: 'open_link', url: 'https://www.linkedin.com/in/rhmi/' }, { id: 'github', text: "GITHUB", action: 'open_link', url: 'https://github.com/rayanehmi' }, { id: 'cv', text: "DOWNLOAD CV", action: 'open_link', url: 'documents/cv.pdf' } ]; links.forEach(link => { ctx.font = linkFont; const textMetrics = ctx.measureText(link.text); const textWidth = textMetrics.width; const linkX = canvas.width / 2 - textWidth / 2; const isHovered = globalMouseX >= linkX && globalMouseX <= linkX + textWidth && globalMouseY >= yPos && globalMouseY <= yPos + linkHeight; drawText(link.text, canvas.width / 2, yPos + linkHeight / 2, linkFont, isHovered ? linkHoverColor : linkColor, 'center', 'middle'); currentInteractiveElements.push({ ...link, x: linkX, y: yPos, width: textWidth, height: linkHeight, isHovered }); yPos += linkHeight + linkSpacing; }); }
+        function measureWrappedTextHeight(text, maxWidth, lineHeight, font) {
+            // We need to set the context's font to get accurate measurements
+            const originalFont = ctx.font;
+            ctx.font = font;
+
+            const words = text.split(' ');
+            let line = '';
+            let lineCount = 1; // Start with 1 line
+
+            if (!text || words.length === 0) {
+                return 0; // No text, no height
+            }
+
+            for (let n = 0; n < words.length; n++) {
+                const testLine = line + words[n] + ' ';
+                const metrics = ctx.measureText(testLine);
+                if (metrics.width > maxWidth && n > 0) {
+                    line = words[n] + ' ';
+                    lineCount++;
+                } else {
+                    line = testLine;
+                }
+            }
+
+            // Restore the original font to not affect other drawing operations
+            ctx.font = originalFont;
+            
+            // Return the total height
+            return lineCount * lineHeight;
+        }
         
+        function drawSkillsProjectsScreen() {
+            currentInteractiveElements = [];
+            const padding = canvas.width * 0.05;
+            const titleFont = `bold clamp(22px, 3vw, 30px) 'Press Start 2P'`;
+            const sectionTitleFont = `bold clamp(18px, 2.5vw, 24px) 'Press Start 2P'`;
+            const itemFont = `clamp(14px, 1.8vw, 18px) 'Roboto'`;
+            const textColor = '#ecf0f1';
+            const highlightColor = '#f1c40f';
+            let yPos = canvas.height * 0.1;
+
+            drawText("Skills & Projects", canvas.width / 2, yPos, titleFont, textColor, 'center');
+            yPos += 70;
+
+            // --- Draw Skills from Cached Data ---
+            let skillsX = padding;
+            let skillsY = yPos;
+            drawText("Skills:", skillsX, skillsY, sectionTitleFont, textColor);
+            skillsY += 40;
+            
+            if (!cachedSkills) {
+                drawText("Loading skills...", skillsX, skillsY, itemFont, textColor);
+            } else {
+                cachedSkills.forEach(skill => {
+                    ctx.font = itemFont; 
+                    const textMetrics = ctx.measureText(skill);
+                    const skillWidth = textMetrics.width;
+                    const skillHeight = 25; 
+                    const textRenderY = skillsY + skillHeight / 2; 
+
+                    const isHovered = globalMouseX >= skillsX && globalMouseX <= skillsX + skillWidth + 20 && 
+                                    globalMouseY >= skillsY && globalMouseY <= skillsY + skillHeight;
+                    
+                    drawText(skill, skillsX + 20, textRenderY, itemFont, isHovered ? highlightColor : textColor, 'left', 'middle');
+                    if(isHovered) drawText(">", skillsX, textRenderY, itemFont, highlightColor, 'left', 'middle');
+                    currentInteractiveElements.push({ id: `skill_${skill}`, type: 'info', text: skill, x: skillsX, y: skillsY, width: skillWidth + 20, height: skillHeight, isHovered });
+                    skillsY += 35;
+                });
+            }
+
+            // --- Draw Projects with Dynamic Height ---
+            let projectsX = canvas.width / 2 + padding / 2;
+            let projectsY = yPos;
+            drawText("Projects:", projectsX, projectsY, sectionTitleFont, textColor);
+            projectsY += 40;
+
+            if (!cachedProjects) {
+                drawText("Loading projects...", projectsX, projectsY, itemFont, textColor);
+            } else {
+                const cardWidth = Math.min(canvas.width * 0.4, 400);
+                const cardPadding = 15;
+                const projectTitleFont = `bold clamp(16px, 2vw, 20px) 'Roboto'`;
+                const projectDescFont = `clamp(12px, 1.5vw, 16px) 'Roboto'`;
+                const projectDescLineHeight = 20;
+
+                cachedProjects.forEach(proj => {
+                    // --- Calculate Dynamic Height BEFORE drawing ---
+                    const titleAreaHeight = 35; // Fixed space for the title and its margin
+                    const descMaxWidth = cardWidth - (cardPadding * 2); // Use the full inner width for measuring
+                    
+                    // Use our new helper function to measure the description's height
+                    const descriptionHeight = measureWrappedTextHeight(proj.desc, descMaxWidth, projectDescLineHeight, projectDescFont);
+
+                    // Calculate the total height for this specific card
+                    const dynamicCardHeight = cardPadding + titleAreaHeight + descriptionHeight + cardPadding;
+
+                    // --- Now, draw everything using the calculated height ---
+                    const isHovered = globalMouseX >= projectsX && globalMouseX <= projectsX + cardWidth &&
+                                    globalMouseY >= projectsY && globalMouseY <= projectsY + dynamicCardHeight;
+                    
+                    drawRoundedRect(projectsX, projectsY, cardWidth, dynamicCardHeight, 10, 
+                                    isHovered ? '#567a94' : '#405d72', isHovered ? highlightColor : '#6b8ea8');
+                    
+                    drawText(proj.title, projectsX + cardPadding, projectsY + cardPadding, projectTitleFont, textColor);
+                    
+                    // We use the adjusted maxWidth again for the actual drawing to get the padding right
+                    drawWrappedText(proj.desc, projectsX + cardPadding, projectsY + cardPadding + 30, cardWidth - (cardPadding * 2.5), projectDescLineHeight, projectDescFont, '#bdc3c7');
+                    
+                    // Increment Y position by the dynamic height of the card we just drew
+                    projectsY += dynamicCardHeight + 20;
+                });
+            }
+        }
         const blogTextColor = '#2c3e50';
         const blogTitleColor = '#e74c3c';
         function drawBlogScreen() {
@@ -270,7 +419,7 @@
                 yPos += articleHeightEst + 20;
             });
         }
-        function drawGameZoneScreen() { currentInteractiveElements = []; const padding = canvas.width * 0.05; const titleFont = `bold clamp(20px, 2.8vw, 28px) 'Press Start 2P'`; const itemFont = `clamp(14px, 1.8vw, 18px) 'Roboto'`; const textColor = '#ecf0f1'; const highlightColor = '#e74c3c'; const listTitleFont = `bold clamp(15px, 1.9vw, 19px) 'Press Start 2P'`; let yPos = canvas.height * 0.1; drawText("Retro Arcade", canvas.width / 2, yPos, titleFont, textColor, 'center'); yPos += 50; const gameScreenWidth = canvas.width * 0.45; const gameScreenHeight = canvas.height * 0.4; const gameScreenX = padding; const gameScreenY = yPos; drawRoundedRect(gameScreenX, gameScreenY, gameScreenWidth, gameScreenHeight, 10, '#000000', '#34495e'); drawText("Mini-Game Here", gameScreenX + gameScreenWidth/2, gameScreenY + gameScreenHeight/2, `bold 18px 'Press Start 2P'`, '#555', 'center', 'middle'); const gameListX = gameScreenX + gameScreenWidth + padding * 0.5; let gameListY = yPos; drawText("Select Game:", gameListX, gameListY, listTitleFont, textColor); gameListY += 35; const miniGames = [ { id: 'game1', title: "Astro Blaster", action: 'load_minigame' }, { id: 'game2', title: "Pixel Hopper", action: 'load_minigame' }, { id: 'game3', title: "Retro Drive", action: 'load_minigame' }, { id: 'game4', title: "Maze Crawler", action: 'load_minigame' } ]; const gameItemHeight = 30; const gameItemSpacing = 12; const gameListWidth = canvas.width - gameListX - padding; miniGames.forEach(game => { if (gameListY + gameItemHeight > gameScreenY + gameScreenHeight) return; ctx.font = itemFont; const textMetrics = ctx.measureText(game.title); const gameItemRenderWidth = Math.min(textMetrics.width + 20, gameListWidth - 10); const isHovered = globalMouseX >= gameListX && globalMouseX <= gameListX + gameItemRenderWidth && globalMouseY >= gameListY && globalMouseY <= gameListY + gameItemHeight; drawRoundedRect(gameListX, gameListY, gameItemRenderWidth, gameItemHeight, 5, isHovered ? 'rgba(255,255,255,0.1)' : 'transparent', isHovered ? highlightColor : 'transparent'); drawText(game.title, gameListX + 10, gameListY + gameItemHeight / 2, itemFont, isHovered ? highlightColor : textColor, 'left', 'middle'); currentInteractiveElements.push({ ...game, x: gameListX, y: gameListY, width: gameItemRenderWidth, height: gameItemHeight, action: 'load_minigame', isHovered }); gameListY += gameItemHeight + gameItemSpacing; }); let controlsY = gameScreenY + gameScreenHeight + 40; const buttonSize = Math.min(canvas.width * 0.05, 45); const buttonSpacing = 8; const dpadCenterX = gameScreenX + gameScreenWidth * 0.3; const dpadLayout = [ {id: 'd_up', text: "↑", x: dpadCenterX, y: controlsY }, {id: 'd_left', text: "←", x: dpadCenterX - buttonSize - buttonSpacing, y: controlsY + buttonSize + buttonSpacing }, {id: 'd_down', text: "↓", x: dpadCenterX, y: controlsY + 2 * (buttonSize + buttonSpacing) }, {id: 'd_right', text: "→", x: dpadCenterX + buttonSize + buttonSpacing, y: controlsY + buttonSize + buttonSpacing } ]; const actionBtnStartX = dpadCenterX + 2 * (buttonSize + buttonSpacing) + 35; const actionBtnY = controlsY + (buttonSize + buttonSpacing); const actionButtonsLayout = [ { id: 'btn_a', text: "A", x: actionBtnStartX, y: actionBtnY }, { id: 'btn_b', text: "B", x: actionBtnStartX + buttonSize + buttonSpacing, y: actionBtnY } ]; const allControlButtons = [...dpadLayout, ...actionButtonsLayout]; allControlButtons.forEach(btn => { const isHovered = globalMouseX >= btn.x && globalMouseX <= btn.x + (btn.width || buttonSize) && globalMouseY >= btn.y && globalMouseY <= btn.y + (btn.height || buttonSize); drawRoundedRect(btn.x, btn.y, buttonSize, buttonSize, 8, isHovered ? highlightColor : '#555', '#777'); drawText(btn.text, btn.x + buttonSize/2, btn.y + buttonSize/2, `bold ${buttonSize*0.45}px 'Press Start 2P'`, textColor, 'center', 'middle'); currentInteractiveElements.push({ ...btn, type: 'game_control', width: buttonSize, height: buttonSize, action: 'control_press', isHovered }); }); }
+        function drawGameZoneScreen() { currentInteractiveElements = []; const padding = canvas.width * 0.05; const titleFont = `bold clamp(20px, 2.8vw, 28px) 'Press Start 2P'`; const itemFont = `clamp(14px, 1.8vw, 18px) 'Roboto'`; const textColor = '#ecf0f1'; const highlightColor = '#e74c3c'; const listTitleFont = `bold clamp(15px, 1.9vw, 19px) 'Press Start 2P'`; let yPos = canvas.height * 0.1; drawText("Retro Arcade (under construction)", canvas.width / 2, yPos, titleFont, textColor, 'center'); yPos += 50; const gameScreenWidth = canvas.width * 0.45; const gameScreenHeight = canvas.height * 0.4; const gameScreenX = padding; const gameScreenY = yPos; drawRoundedRect(gameScreenX, gameScreenY, gameScreenWidth, gameScreenHeight, 10, '#000000', '#34495e'); drawText("Mini-Game Here", gameScreenX + gameScreenWidth/2, gameScreenY + gameScreenHeight/2, `bold 18px 'Press Start 2P'`, '#555', 'center', 'middle'); const gameListX = gameScreenX + gameScreenWidth + padding * 0.5; let gameListY = yPos; drawText("Select Game:", gameListX, gameListY, listTitleFont, textColor); gameListY += 35; const miniGames = [ { id: 'game1', title: "Astro Blaster", action: 'load_minigame' }, { id: 'game2', title: "Pixel Hopper", action: 'load_minigame' }, { id: 'game3', title: "Retro Drive", action: 'load_minigame' }, { id: 'game4', title: "Maze Crawler", action: 'load_minigame' } ]; const gameItemHeight = 30; const gameItemSpacing = 12; const gameListWidth = canvas.width - gameListX - padding; miniGames.forEach(game => { if (gameListY + gameItemHeight > gameScreenY + gameScreenHeight) return; ctx.font = itemFont; const textMetrics = ctx.measureText(game.title); const gameItemRenderWidth = Math.min(textMetrics.width + 20, gameListWidth - 10); const isHovered = globalMouseX >= gameListX && globalMouseX <= gameListX + gameItemRenderWidth && globalMouseY >= gameListY && globalMouseY <= gameListY + gameItemHeight; drawRoundedRect(gameListX, gameListY, gameItemRenderWidth, gameItemHeight, 5, isHovered ? 'rgba(255,255,255,0.1)' : 'transparent', isHovered ? highlightColor : 'transparent'); drawText(game.title, gameListX + 10, gameListY + gameItemHeight / 2, itemFont, isHovered ? highlightColor : textColor, 'left', 'middle'); currentInteractiveElements.push({ ...game, x: gameListX, y: gameListY, width: gameItemRenderWidth, height: gameItemHeight, action: 'load_minigame', isHovered }); gameListY += gameItemHeight + gameItemSpacing; }); let controlsY = gameScreenY + gameScreenHeight + 40; const buttonSize = Math.min(canvas.width * 0.05, 45); const buttonSpacing = 8; const dpadCenterX = gameScreenX + gameScreenWidth * 0.3; const dpadLayout = [ {id: 'd_up', text: "↑", x: dpadCenterX, y: controlsY }, {id: 'd_left', text: "←", x: dpadCenterX - buttonSize - buttonSpacing, y: controlsY + buttonSize + buttonSpacing }, {id: 'd_down', text: "↓", x: dpadCenterX, y: controlsY + 2 * (buttonSize + buttonSpacing) }, {id: 'd_right', text: "→", x: dpadCenterX + buttonSize + buttonSpacing, y: controlsY + buttonSize + buttonSpacing } ]; const actionBtnStartX = dpadCenterX + 2 * (buttonSize + buttonSpacing) + 35; const actionBtnY = controlsY + (buttonSize + buttonSpacing); const actionButtonsLayout = [ { id: 'btn_a', text: "A", x: actionBtnStartX, y: actionBtnY }, { id: 'btn_b', text: "B", x: actionBtnStartX + buttonSize + buttonSpacing, y: actionBtnY } ]; const allControlButtons = [...dpadLayout, ...actionButtonsLayout]; allControlButtons.forEach(btn => { const isHovered = globalMouseX >= btn.x && globalMouseX <= btn.x + (btn.width || buttonSize) && globalMouseY >= btn.y && globalMouseY <= btn.y + (btn.height || buttonSize); drawRoundedRect(btn.x, btn.y, buttonSize, buttonSize, 8, isHovered ? highlightColor : '#555', '#777'); drawText(btn.text, btn.x + buttonSize/2, btn.y + buttonSize/2, `bold ${buttonSize*0.45}px 'Press Start 2P'`, textColor, 'center', 'middle'); currentInteractiveElements.push({ ...btn, type: 'game_control', width: buttonSize, height: buttonSize, action: 'control_press', isHovered }); }); }
         function drawPlaceholderScreen() { currentInteractiveElements = []; const screenData = world[currentScreenY][currentScreenX]; drawText(screenData.name, canvas.width / 2, canvas.height / 2 - 30, `bold clamp(20px, 3vw, 28px) 'Press Start 2P'`, '#ecf0f1', 'center'); drawText("Inaccessible Zone", canvas.width / 2, canvas.height / 2 + 20, `clamp(16px, 2vw, 20px) 'Roboto'`, '#7f8c8d', 'center'); }
         function drawCurrentScreenContent() { const screenType = world[currentScreenY][currentScreenX].type; switch (screenType) { case 'presentation': drawPresentationScreen(); break; case 'skills_projects': drawSkillsProjectsScreen(); break; case 'blog': drawBlogScreen(); break; case 'game_zone': drawGameZoneScreen(); break; case 'placeholder': default: drawPlaceholderScreen(); break; } }
         function drawStaticTransitionLabels() { const labelFont = `bold clamp(12px, 1.6vw, 16px) 'Press Start 2P'`; const labelColor = '#bdc3c7'; const labelOffset = 25; if (currentScreenX === 1 && currentScreenY === 1) { if (isScreenTransitionAllowed(0, 1)) { const target = world[1][0]; drawText(`← ${target.shortName}`, labelOffset, canvas.height / 2, labelFont, labelColor, 'left', 'middle'); } if (isScreenTransitionAllowed(2, 1)) { const target = world[1][2]; drawText(`${target.shortName} →`, canvas.width - labelOffset, canvas.height / 2, labelFont, labelColor, 'right', 'middle'); } if (isScreenTransitionAllowed(1, 2)) { const target = world[2][1]; drawText(`↓ ${target.shortName}`, canvas.width / 2, canvas.height - labelOffset, labelFont, labelColor, 'center', 'bottom'); } } else if (currentScreenX === 0 && currentScreenY === 1) { if (isScreenTransitionAllowed(1, 1)) { const target = world[1][1]; drawText(`${target.shortName} →`, canvas.width - labelOffset, canvas.height / 2, labelFont, labelColor, 'right', 'middle'); } } else if (currentScreenX === 2 && currentScreenY === 1) { if (isScreenTransitionAllowed(1, 1)) { const target = world[1][1]; drawText(`← ${target.shortName}`, labelOffset, canvas.height / 2, labelFont, labelColor, 'left', 'middle'); } } else if (currentScreenX === 1 && currentScreenY === 2) { if (isScreenTransitionAllowed(1, 1)) { const target = world[1][1]; drawText(`↑ ${target.shortName}`, canvas.width / 2, labelOffset, labelFont, labelColor, 'center', 'top'); } } }
@@ -343,7 +492,10 @@
 
         function handleResize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; const currentCanvasCenterX = canvas.width / 2; const currentCanvasCenterY = canvas.height / 2; player.prevMouseX = currentCanvasCenterX; player.prevMouseY = currentCanvasCenterY; player.x = currentCanvasCenterX - player.width / 2; player.y = currentCanvasCenterY - player.height / 2; updateScreenInfo(); currentInteractiveElements = []; }
         function gameLoop() { clearCanvas(); drawCurrentScreenContent(); drawStaticTransitionLabels(); drawPlayer(); requestAnimationFrame(gameLoop); }
-        function init() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; player.x = canvas.width / 2 - player.width / 2; player.y = canvas.height / 2 - player.height / 2; player.prevMouseX = player.x + player.width / 2; player.prevMouseY = player.y + player.height / 2; canvas.addEventListener('mousemove', handleMouseMove); canvas.addEventListener('click', handleCanvasClick); window.addEventListener('resize', handleResize); updateScreenInfo(); gameLoop(); }
+        function init() { 
+            loadSkillsAndProjectsData();
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight; player.x = canvas.width / 2 - player.width / 2; player.y = canvas.height / 2 - player.height / 2; player.prevMouseX = player.x + player.width / 2; player.prevMouseY = player.y + player.height / 2; canvas.addEventListener('mousemove', handleMouseMove); canvas.addEventListener('click', handleCanvasClick); window.addEventListener('resize', handleResize); updateScreenInfo(); gameLoop(); 
+        }
         window.onload = init;
     </script>
 </body>
