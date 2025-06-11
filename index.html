@@ -243,7 +243,7 @@
         y = wrapText("Welcome!", contentW, titleLineHeight, titleFont, canvas.width / 2, y, "#ecf0f1", "center") + titleLineHeight;
         y += 20;
 
-        const intro = "I am Rayane Hachemi, a creative and passionate Machine-Learning Engineer. This personal website is still under construction (by Gemini). Feel free to explore it!";
+        const intro = "I am Rayane Hachemi, a creative and passionate Machine-Learning Engineer interested in RL and LLMs agents. This personal website is still under construction (by Gemini). Feel free to explore it!";
         const introSize = getResponsiveFontSize(15, 2, 19);
         const introLineHeight = introSize * 1.5;
         y = wrapText(intro, contentW, introLineHeight, `${introSize}px 'Roboto'`, canvas.width / 2, y, "#bdc3c7", "center") + introLineHeight;
@@ -287,15 +287,27 @@
         let sx = pad, sy = y;
         drawText("Skills:", sx, sy, sectionFont, textColor);
         sy += sectionSize + 15;
-        if (!cachedSkills) drawText("Loading…", sx, sy, itemFont, textColor);
-        else {
+
+        const skillsStartX = sx + 20;
+        const skillsMaxWidth = (isMobile ? canvas.width - pad : canvas.width / 2) - skillsStartX;
+        const skillLineHeight = itemSize * 1.4;
+
+        if (!cachedSkills) {
+             drawText("Loading…", sx, sy, itemFont, textColor);
+        } else {
             cachedSkills.forEach(sk => {
-                ctx.font = itemFont; const tw = ctx.measureText(sk).width; const h = itemSize + 8;
-                const hovered = globalMouseX >= sx && globalMouseX <= sx + tw + 20 && globalMouseY >= sy && globalMouseY <= sy + h;
-                drawText(sk, sx + 20, sy + h / 2, itemFont, hovered ? hl : textColor, "left", "middle");
-                if (hovered) drawText(">", sx, sy + h / 2, itemFont, hl, "left", "middle");
-                currentInteractiveElements.push({ id: `skill_${sk}`, x: sx, y: sy, width: tw + 20, height: h, action: "noop" });
-                sy += itemSize + 12;
+                const itemY = sy;
+                const requiredHeight = measureHeight(sk, skillsMaxWidth, skillLineHeight, itemFont);
+                const hovered = globalMouseX >= sx && globalMouseX <= sx + skillsMaxWidth + 20 && globalMouseY >= itemY && globalMouseY <= itemY + requiredHeight;
+                
+                // Use the new width and line height to correctly wrap the skill text
+                wrapText(sk, skillsMaxWidth, skillLineHeight, itemFont, skillsStartX, itemY, hovered ? hl : textColor);
+                if (hovered) drawText(">", sx, itemY + requiredHeight / 2, itemFont, hl, "left", "middle");
+
+                currentInteractiveElements.push({ id: `skill_${sk}`, x: sx, y: itemY, width: skillsMaxWidth + 20, height: requiredHeight, action: "noop" });
+                
+                // Increment sy by the actual measured height of the skill
+                sy += requiredHeight + 15;
             });
         }
 
