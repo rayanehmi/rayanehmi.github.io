@@ -216,7 +216,7 @@
     }
     const drawText = (txt, x, y, font, color, align = "left", baseline = "top") => { ctx.font = font; ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = baseline; ctx.fillText(txt, x, y); };
     const drawRoundedRect = (x,y,w,h,r,fFill,fStroke=null,lw=2) => { ctx.beginPath(); ctx.moveTo(x+r, y); ctx.lineTo(x+w-r, y); ctx.quadraticCurveTo(x+w, y, x+w, y+r); ctx.lineTo(x+w, y+h-r); ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h); ctx.lineTo(x+r, y+h); ctx.quadraticCurveTo(x, y+h, x, y+h-r); ctx.lineTo(x, y+r); ctx.quadraticCurveTo(x, y, x+r, y); ctx.closePath(); if (fFill) { ctx.fillStyle = fFill; ctx.fill(); } if (fStroke) { ctx.lineWidth = lw; ctx.strokeStyle = fStroke; ctx.stroke(); } };
-    const wrapText = (txt,maxW,lineH,font,x,y,color,align="left") => { ctx.font=font; ctx.fillStyle=color; ctx.textAlign=align; const words=txt.split(" "); let line=""; let curY=y; words.forEach((w,i)=>{ const test=line+w+" "; if(ctx.measureText(test).width>maxW&&i>0){ ctx.fillText(line,x,curY); line=w+" "; curY+=lineH; }else{ line=test; } }); ctx.fillText(line,x,curY); return curY+lineH; };
+    const wrapText = (txt,maxW,lineH,font,x,y,color,align="left") => { ctx.font=font; ctx.fillStyle=color; ctx.textAlign=align; const words=txt.split(" "); let line=""; let curY=y; words.forEach((w,i)=>{ const test=line+w+" "; if(ctx.measureText(test).width>maxW&&i>0){ ctx.fillText(line,x,curY); line=w+" "; curY+=lineH; }else{ line=test; } }); ctx.fillText(line,x,curY); return curY; }; // FIX: Return position of last line's baseline
     const measureHeight = (txt,maxW,lineH,font) => { ctx.font=font; const words=txt.split(" "); let line=""; let lines=1; if(!txt) return 0; words.forEach((w,i)=>{ const test=line+w+" "; if(ctx.measureText(test).width>maxW&&i>0){ line=w+" "; lines++; }else line=test; }); return lines*lineH; };
 
     /* ---------- DATA LOADING ---------- */
@@ -237,14 +237,17 @@
         const contentW = canvas.width - 2 * padding;
         let y = canvas.height * 0.15 + scrollOffset;
 
-        const titleSize = getResponsiveFontSize(22, 4, 38);
-        drawText("Welcome!", canvas.width / 2, y, `bold ${titleSize}px 'Press Start 2P'`, "#ecf0f1", "center");
-        y += titleSize + 30;
+        const titleSize = getResponsiveFontSize(22, 5, 38);
+        const titleFont = `bold ${titleSize}px 'Press Start 2P'`;
+        const titleLineHeight = titleSize * 1.2;
+        y = wrapText("Welcome!", contentW, titleLineHeight, titleFont, canvas.width / 2, y, "#ecf0f1", "center") + titleLineHeight;
+        y += 20;
 
         const intro = "I am Rayane Hachemi, a creative and passionate Machine-Learning Engineer. This personal website is still under construction (by Gemini). Feel free to explore it!";
         const introSize = getResponsiveFontSize(15, 2, 19);
-        y = wrapText(intro, contentW, introSize * 1.5, `${introSize}px 'Roboto'`, canvas.width / 2, y, "#bdc3c7", "center");
-        y += 30;
+        const introLineHeight = introSize * 1.5;
+        y = wrapText(intro, contentW, introLineHeight, `${introSize}px 'Roboto'`, canvas.width / 2, y, "#bdc3c7", "center") + introLineHeight;
+        y += 20;
 
         const links = [{ id: "email", txt: "EMAIL", url: "mailto:rhmi@outlook.fr" }, { id: "lin", txt: "LINKEDIN", url: "https://www.linkedin.com/in/rhmi/" }, { id: "git", txt: "GITHUB", url: "https://github.com/rayanehmi" }, { id: "cv", txt: "DOWNLOAD CV", url: "documents/cv.pdf" }];
         const linkSize = getResponsiveFontSize(13, 1.8, 18);
@@ -268,15 +271,17 @@
         currentInteractiveElements = [];
         const isMobile = canvas.width < 768;
         const pad = canvas.width * (isMobile ? 0.08 : 0.05);
-        const titleSize = getResponsiveFontSize(20, 3, 28);
+        const titleSize = getResponsiveFontSize(20, 4, 28);
         const sectionSize = getResponsiveFontSize(16, 2.4, 24);
         const itemSize = getResponsiveFontSize(14, 1.9, 18);
         const titleFont = `bold ${titleSize}px 'Press Start 2P'`, itemFont = `${itemSize}px 'Roboto'`, sectionFont = `bold ${sectionSize}px 'Press Start 2P'`;
         const textColor = "#ecf0f1", hl = "#f1c40f";
 
         let y = canvas.height * 0.1 + scrollOffset;
-        drawText("Skills & Projects", canvas.width / 2, y, titleFont, textColor, "center");
-        y += titleSize + 30;
+        const titleMaxWidth = canvas.width - pad * 2;
+        const titleLineHeight = titleSize * 1.2;
+        y = wrapText("Skills & Projects", titleMaxWidth, titleLineHeight, titleFont, canvas.width / 2, y, textColor, "center") + titleLineHeight;
+        y += 20;
 
         /* SKILLS */
         let sx = pad, sy = y;
@@ -310,12 +315,13 @@
         if (!cachedProjects) drawText("Loading…", px, py, itemFont, textColor);
         else {
             cachedProjects.forEach(pr => {
+                const titleH = measureHeight(pr.title, cardW - cardPad * 2, pTitleSize * 1.2, pTitleFont);
                 const descH = measureHeight(pr.desc, cardW - cardPad * 2, lineH, pDescFont);
-                const cardH = cardPad + (pTitleSize + 10) + descH + cardPad;
+                const cardH = cardPad + titleH + 5 + descH + cardPad;
                 const hovered = globalMouseX >= px && globalMouseX <= px + cardW && globalMouseY >= py && globalMouseY <= py + cardH;
                 drawRoundedRect(px, py, cardW, cardH, 8, hovered ? "#567a94" : "#405d72", hovered ? hl : "#6b8ea8");
-                drawText(pr.title, px + cardPad, py + cardPad, pTitleFont, textColor);
-                wrapText(pr.desc, cardW - cardPad * 2, lineH, pDescFont, px + cardPad, py + cardPad + pTitleSize + 10, "#bdc3c7");
+                wrapText(pr.title, cardW - cardPad * 2, pTitleSize * 1.2, pTitleFont, px + cardPad, py + cardPad, textColor);
+                wrapText(pr.desc, cardW - cardPad * 2, lineH, pDescFont, px + cardPad, py + cardPad + titleH + 5, "#bdc3c7");
                 py += cardH + 20;
             });
         }
@@ -324,17 +330,20 @@
 
     function drawBlogScreen() {
         currentInteractiveElements = [];
-        const titleSize = getResponsiveFontSize(20, 3, 28);
+        const titleSize = getResponsiveFontSize(20, 4, 28);
         const itemTitleSize = getResponsiveFontSize(16, 2.3, 22);
         const metaSize = getResponsiveFontSize(12, 1.5, 14);
         const titleFont = `bold ${titleSize}px 'Press Start 2P'`, itemTitleFont = `bold ${itemTitleSize}px 'Roboto'`, metaFont = `${metaSize}px 'Roboto'`;
         const mainColor = "#2c3e50", accent = "#e74c3c";
+        const pad = canvas.width * 0.05;
 
         let y = canvas.height * 0.1 + scrollOffset;
-        drawText("My Blog Corner", canvas.width / 2, y, titleFont, accent, "center");
-        y += titleSize + 30;
+        const titleMaxWidth = canvas.width - pad * 2;
+        const titleLineHeight = titleSize * 1.2;
+        y = wrapText("My Blog Corner", titleMaxWidth, titleLineHeight, titleFont, canvas.width / 2, y, accent, "center") + titleLineHeight;
+        y += 20;
 
-        const articles = [{ id: "blog1", title: "Agentic LLMs in Gaming", date: "June 10 2025", path: "documents/blog1.md" }, { id: "blog2", title: "Tutorial: How to create a super-human computer virus", date: "June 10 2025", path: "documents/blog2.md" }];
+        const articles = [{ id: "blog1", title: "Agentic LLMs in Gaming", date: "June 11, 2025", path: "documents/blog1.md" }, { id: "blog2", title: "Tutorial: How to create a super-human computer virus", date: "June 10, 2025", path: "documents/blog2.md" }];
         const cardW = Math.min(canvas.width * 0.86, 700);
         const x = canvas.width / 2 - cardW / 2;
 
@@ -344,8 +353,8 @@
             const cardH = 20 + titleHeight + 10 + metaSize + 15;
             const hovered = globalMouseX >= x && globalMouseX <= x + cardW && globalMouseY >= y && globalMouseY <= y + cardH;
             drawRoundedRect(x, y, cardW, cardH, 8, hovered ? "#f8f9fa" : "#ffffff", hovered ? accent : "#bdc3c7");
-            wrapText(a.title, cardW - 40, titleLineHeight, itemTitleFont, x + 20, y + 20, hovered ? accent : mainColor);
-            drawText(a.date, x + 20, y + 20 + titleHeight + 10, metaFont, "#7f8c8d");
+            const titleY = wrapText(a.title, cardW - 40, titleLineHeight, itemTitleFont, x + 20, y + 20, hovered ? accent : mainColor);
+            drawText(a.date, x + 20, titleY + titleLineHeight + 5, metaFont, "#7f8c8d");
             currentInteractiveElements.push({ ...a, type: "blog_article", action: "show_article", x, y, width: cardW, height: cardH });
             y += cardH + 20;
         });
@@ -356,7 +365,7 @@
         currentInteractiveElements = [];
         const titleSize = getResponsiveFontSize(18, 2.8, 26);
         const titleFont = `bold ${titleSize}px 'Press Start 2P'`;
-        drawText("Retro Arcade (under construction)", canvas.width / 2, canvas.height * 0.1, titleFont, "#ecf0f1", "center");
+        wrapText("Retro Arcade (under construction)", canvas.width*0.9, titleSize*1.2, titleFont, canvas.width / 2, canvas.height * 0.1, "#ecf0f1", "center");
         currentContentHeight = canvas.height;
     }
 
@@ -368,6 +377,31 @@
         drawText("Inaccessible Zone", canvas.width / 2, canvas.height / 2 + 15, `${textSize}px 'Roboto'`, "#7f8c8d", "center");
         currentContentHeight = canvas.height;
     }
+    
+    // NEW: Replaces the old text labels with universal, animated arrows
+    function drawNavigationHints() {
+        const allowed = (x, y) => allowedScreenCoords.some(c => c.x === x && c.y === y);
+        const canGoLeft = allowed(currentScreenX - 1, currentScreenY);
+        const canGoRight = allowed(currentScreenX + 1, currentScreenY);
+        const canGoUp = allowed(currentScreenX, currentScreenY - 1);
+        const canGoDown = allowed(currentScreenX, currentScreenY + 1);
+
+        // Pulsing alpha for a subtle animation
+        const pulse = 0.6 + Math.sin(Date.now() * 0.002) * 0.4;
+        ctx.fillStyle = `rgba(255, 255, 255, ${pulse * 0.5})`;
+        
+        const arrowSize = getResponsiveFontSize(30, 5, 50);
+        ctx.font = `${arrowSize}px 'Roboto'`;
+
+        const vOffset = canvas.height / 2 + arrowSize / 3;
+        const hOffset = canvas.width / 2;
+        const edgePad = 25;
+
+        if(canGoLeft) drawText('<', edgePad, vOffset, ctx.font, ctx.fillStyle, 'center');
+        if(canGoRight) drawText('>', canvas.width - edgePad, vOffset, ctx.font, ctx.fillStyle, 'center');
+        if(canGoUp) drawText('^', hOffset, edgePad + arrowSize/2, ctx.font, ctx.fillStyle, 'center');
+        if(canGoDown) drawText('v', hOffset, canvas.height - edgePad, ctx.font, ctx.fillStyle, 'center');
+    }
 
     function drawCurrentScreen() {
         const t = world[currentScreenY][currentScreenX].type;
@@ -376,20 +410,6 @@
         else if (t === "blog") drawBlogScreen();
         else if (t === "game_zone") drawGameZoneScreen();
         else drawPlaceholderScreen();
-    }
-    
-    function drawStaticTransitionLabels() {
-        if (canvas.width < 768 || canvas.height < 500) return; // mobile hide
-        const labelSize = getResponsiveFontSize(12, 1.6, 16);
-        const font = `bold ${labelSize}px 'Press Start 2P'`, col = "#bdc3c7", off = 25;
-        const allowed = (x, y) => allowedScreenCoords.some(c => c.x === x && c.y === y);
-        if (currentScreenX === 1 && currentScreenY === 1) {
-            if (allowed(0, 1)) drawText("← " + world[1][0].shortName, off, canvas.height / 2, font, col, "left", "middle");
-            if (allowed(2, 1)) drawText(world[1][2].shortName + " →", canvas.width - off, canvas.height / 2, font, col, "right", "middle");
-            if (allowed(1, 2)) drawText("↓ " + world[2][1].shortName, canvas.width / 2, canvas.height - off, font, col, "center", "bottom");
-        } else if (currentScreenX === 0 && currentScreenY === 1) { drawText(world[1][1].shortName + " →", canvas.width - off, canvas.height / 2, font, col, "right", "middle"); }
-        else if (currentScreenX === 2 && currentScreenY === 1) { drawText("← " + world[1][1].shortName, off, canvas.height / 2, font, col, "left", "middle"); }
-        else if (currentScreenX === 1 && currentScreenY === 2) { drawText("↑ " + world[1][1].shortName, canvas.width / 2, off, font, col, "center", "top"); }
     }
 
     /* ---------- INTERACTION ---------- */
@@ -450,7 +470,7 @@
         ctx.fillStyle = world[currentScreenY][currentScreenX].color;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         drawCurrentScreen();
-        drawStaticTransitionLabels();
+        drawNavigationHints();
         drawPlayer();
         requestAnimationFrame(gameLoop);
     }
