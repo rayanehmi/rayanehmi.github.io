@@ -267,6 +267,80 @@
         currentContentHeight = y - scrollOffset + 50;
     }
 
+    function drawNavigationHints() {
+        const allowed = (x, y) => allowedScreenCoords.some(c => c.x === x && c.y === y);
+        const canGoLeft = allowed(currentScreenX - 1, currentScreenY);
+        const canGoRight = allowed(currentScreenX + 1, currentScreenY);
+        const canGoUp = allowed(currentScreenX, currentScreenY - 1);
+        const canGoDown = allowed(currentScreenX, currentScreenY + 1);
+
+        const proximityThreshold = canvas.width * 0.2;
+
+        // Helper to calculate highlight based on distance
+        const getHighlight = (dist) => Math.max(0, 1 - (dist / proximityThreshold));
+
+        const highlightLeft = getHighlight(player.x);
+        const highlightRight = getHighlight(canvas.width - player.x);
+        const highlightUp = getHighlight(player.y);
+        const highlightDown = getHighlight(canvas.height - player.y);
+
+        const drawArrow = (char, x, y, highlight) => {
+            // The line "if (highlight <= 0) return;" that I added before
+            // has been REMOVED from here to restore the correct behavior.
+            
+            const baseOpacity = 0.5; // A subtle base visibility
+            const baseSize = 45;
+
+            // Opacity and size now correctly scale from the base state to the fully highlighted state
+            const finalOpacity = baseOpacity + ((1 - baseOpacity) * highlight);
+            const finalSize = baseSize + (35 * highlight); // Grow up to 25px
+            
+            ctx.fillStyle = `rgba(236, 240, 241, ${finalOpacity})`;
+            ctx.font = `bold ${finalSize}px 'Roboto'`;
+            drawText(char, x, y, ctx.font, ctx.fillStyle, 'center', 'middle');
+        };
+
+        const edgePad = 40;
+        const vPos = canvas.height / 2;
+        const hPos = canvas.width / 2;
+        
+        if (canGoLeft) drawArrow('<', edgePad, vPos, highlightLeft);
+        if (canGoRight) drawArrow('>', canvas.width - edgePad, vPos, highlightRight);
+        if (canGoUp) drawArrow('^', hPos, edgePad, highlightUp);
+        if (canGoDown) drawArrow('v', hPos, canvas.height - edgePad, highlightDown);
+    }
+
+    function drawDesktopNavLabels() {
+        // Only run on screens wider than 800px
+        if (canvas.width < 800) return;
+
+        const allowed = (x, y) => allowedScreenCoords.some(c => c.x === x && c.y === y);
+        const labelSize = getResponsiveFontSize(12, 1.2, 14);
+        const font = `bold ${labelSize}px 'Press Start 2P'`;
+        const color = "rgba(236, 240, 241, 0.7)";
+        
+        // Increased offset to place text next to the graphical arrow
+        const h_offset = 85; 
+        const v_offset = 70;
+        
+        const vPos = canvas.height / 2;
+        const hPos = canvas.width / 2;
+
+        // --- STRINGS EDITED TO REMOVE TEXT-BASED ARROWS ---
+        if (allowed(currentScreenX - 1, currentScreenY)) {
+            drawText(`${world[currentScreenY][currentScreenX - 1].shortName}`, h_offset, vPos, font, color, 'left', 'middle');
+        }
+        if (allowed(currentScreenX + 1, currentScreenY)) {
+            drawText(`${world[currentScreenY][currentScreenX + 1].shortName}`, canvas.width - h_offset, vPos, font, color, 'right', 'middle');
+        }
+        if (allowed(currentScreenX, currentScreenY - 1)) {
+            drawText(`${world[currentScreenY - 1][currentScreenX].shortName}`, hPos, v_offset, font, color, 'center', 'top');
+        }
+        if (allowed(currentScreenX, currentScreenY + 1)) {
+            drawText(`${world[currentScreenY + 1][currentScreenX].shortName}`, hPos, canvas.height - v_offset, font, color, 'center', 'bottom');
+        }
+    }
+
     function drawSkillsProjectsScreen() {
         currentInteractiveElements = [];
         const isMobile = canvas.width < 768;
@@ -389,45 +463,6 @@
         drawText("Inaccessible Zone", canvas.width / 2, canvas.height / 2 + 15, `${textSize}px 'Roboto'`, "#7f8c8d", "center");
         currentContentHeight = canvas.height;
     }
-    
-    // Replace the entire drawNavigationHints function with this:
-    function drawNavigationHints() {
-        const allowed = (x, y) => allowedScreenCoords.some(c => c.x === x && c.y === y);
-        const canGoLeft = allowed(currentScreenX - 1, currentScreenY);
-        const canGoRight = allowed(currentScreenX + 1, currentScreenY);
-        const canGoUp = allowed(currentScreenX, currentScreenY - 1);
-        const canGoDown = allowed(currentScreenX, currentScreenY + 1);
-
-        const proximityThreshold = canvas.width * 0.2; // How close player needs to be to highlight
-
-        // Helper to calculate highlight based on distance
-        const getHighlight = (dist) => Math.max(0, 1 - (dist / proximityThreshold));
-
-        const highlightLeft = getHighlight(player.x);
-        const highlightRight = getHighlight(canvas.width - player.x);
-        const highlightUp = getHighlight(player.y);
-        const highlightDown = getHighlight(canvas.height - player.y);
-
-        const drawArrow = (char, x, y, highlight) => {
-            const baseOpacity = 0.4;
-            const baseSize = 50;
-            const finalOpacity = baseOpacity + (1 - baseOpacity) * highlight;
-            const finalSize = baseSize + (25 * highlight); // Grow up to 25px
-            
-            ctx.fillStyle = `rgba(236, 240, 241, ${finalOpacity})`;
-            ctx.font = `bold ${finalSize}px 'Roboto'`;
-            drawText(char, x, y + finalSize/3, ctx.font, ctx.fillStyle, 'center', 'middle');
-        };
-
-        const edgePad = 40;
-        const vPos = canvas.height / 2;
-        const hPos = canvas.width / 2;
-        
-        if (canGoLeft) drawArrow('<', edgePad, vPos, highlightLeft);
-        if (canGoRight) drawArrow('>', canvas.width - edgePad, vPos, highlightRight);
-        if (canGoUp) drawArrow('^', hPos, edgePad, highlightUp);
-        if (canGoDown) drawArrow('v', hPos, canvas.height - edgePad, highlightDown);
-    }
 
     function drawCurrentScreen() {
         const t = world[currentScreenY][currentScreenX].type;
@@ -497,6 +532,7 @@
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         drawCurrentScreen();
         drawNavigationHints();
+        drawDesktopNavLabels();
         drawPlayer();
         requestAnimationFrame(gameLoop);
     }
