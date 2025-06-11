@@ -1,589 +1,480 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Portfolio - Rayane Hachemi</title>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #2c3e50; 
-            font-family: 'Roboto', sans-serif;
-            display: flex; 
-            align-items: center;
-            justify-content: center;
-        }
-        .game-container {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-            background-color: #000;
-            cursor: none;
-        }
-        #screen-info {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 10px 20px;
-            background-color: rgba(20, 30, 40, 0.85);
-            color: #ecf0f1;
-            border-radius: 8px;
-            font-size: clamp(0.8em, 1.5vw, 1.1em);
-            font-family: 'Press Start 2P', cursive;
-            text-align: center;
-            z-index: 10;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.4);
-            pointer-events: none;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.75);
-            align-items: center;
-            justify-content: center;
-            cursor: default;
-            padding: 20px; 
-            box-sizing: border-box;
-        }
-        .modal-content {
-            position: relative;
-            background-color: #f1f1f1;
-            color: #2c3e50;
-            margin: auto;
-            padding: 20px 30px;
-            border: 2px solid #34495e;
-            width: 95%;
-            max-width: 800px;
-            border-radius: 10px;
-            text-align: left;
-            font-family: 'Roboto', sans-serif;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-            max-height: 85vh; 
-            overflow-y: auto; 
-            box-sizing: border-box;
-        }
-        .modal-content .md-content img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 5px;
-        }
-        .close-button {
-            position: absolute;
-            top: 10px;
-            right: 20px;
-            color: #e74c3c;
-            font-size: 28px;
-            font-weight: bold;
-            line-height: 1;
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-        .close-button:hover {
-            color: #c0392b;
-        }
-        .modal-content h3 {
-            font-family: 'Press Start 2P', cursive;
-            color: #e74c3c;
-            margin-top: 0;
-            font-size: 1.2em;
-        }
-        .modal-content p {
-            font-size: 1em;
-            line-height: 1.6;
-        }
-        .modal-content button {
-            font-family: 'Press Start 2P', cursive;
-            background-color: #e74c3c;
-            color: white;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 20px;
-            font-size: 0.8em;
-            transition: background-color 0.2s;
-            display: block; 
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .modal-content button:hover {
-            background-color: #c0392b;
-        }
-        
-        /** ADDED & MODIFIED: Styling for Markdown-generated HTML in the modal **/
-        .modal-content .md-content h1, .modal-content .md-content h2, .modal-content .md-content h3 {
-            font-family: 'Press Start 2P', cursive;
-            color: #34495e;
-            margin-top: 24px;
-            margin-bottom: 10px;
-        }
-        .modal-content .md-content h1 { font-size: 1.3em; }
-        .modal-content .md-content h2 { font-size: 1.1em; }
-        .modal-content .md-content h3 { font-size: 1.0em; }
-        .modal-content .md-content a {
-            color: #2980b9;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        .modal-content .md-content a:hover {
-            text-decoration: underline;
-        }
-        .modal-content .md-content code {
-            background-color: #e3e6e8;
-            padding: 2px 5px;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 0.9em;
-            border: 1px solid #bdc3c7;
-            /* FIX: Ensure inline code also wraps */
-            word-break: break-all;
-        }
-        .modal-content .md-content pre {
-            background-color: #e3e6e8;
-            padding: 10px;
-            border-radius: 5px;
-            overflow-x: auto;
-            border: 1px solid #bdc3c7;
-            /* FIX: Make pre-formatted text wrap to prevent horizontal overflow */
-            white-space: pre-wrap;
-            word-wrap: break-word; 
-        }
-         .modal-content .md-content pre code {
-            border: none;
-            background-color: transparent;
-            padding: 0;
-        }
-        .modal-content .md-content ul, .modal-content .md-content ol {
-            padding-left: 25px;
-        }
-         .modal-content .md-content li {
-            margin-bottom: 8px;
-         }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Interactive Portfolio – Rayane Hachemi</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <style>
+    /* ---------- GLOBAL ---------- */
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden; /* Prevent body scrollbars on desktop */
+      background: #2c3e50;
+      font-family: "Roboto", sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .game-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: #000;
+      cursor: none;
+    }
+
+    /* ---------- HEADER (current room) ---------- */
+    #screen-info {
+      position: fixed; /* Use fixed to stay within viewport on scroll */
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 20px;
+      background: rgba(20, 30, 40, 0.85);
+      color: #ecf0f1;
+      border-radius: 8px;
+      font-family: "Press Start 2P", cursive;
+      font-size: clamp(0.8em, 1.4vw, 1.1em);
+      text-align: center;
+      z-index: 10;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+      pointer-events: none;
+    }
+
+    /* ---------- MODAL ---------- */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      cursor: default;
+    }
+
+    .modal-content {
+      position: relative;
+      background: #f1f1f1;
+      color: #2c3e50;
+      width: 100%;
+      max-width: 800px;
+      max-height: 90vh;
+      border: 2px solid #34495e;
+      border-radius: 10px;
+      padding: 20px 30px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.35);
+    }
+
+    @media (max-width: 700px) {
+      .modal-content {
+        max-width: 95vw;
+        padding: 15px 18px;
+      }
+    }
+
+    .close-button {
+      position: absolute;
+      top: 8px;
+      right: 18px;
+      font-size: 28px;
+      font-weight: bold;
+      color: #e74c3c;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .close-button:hover { color: #c0392b; }
+
+    /* markdown inside modal */
+    .md-content { word-wrap: break-word; }
+    .md-content img { max-width: 100%; height: auto; border-radius: 4px; }
+    .md-content h1,
+    .md-content h2,
+    .md-content h3 {
+      font-family: "Press Start 2P", cursive;
+      color: #34495e;
+      margin: 24px 0 10px;
+    }
+    .md-content a { color: #2980b9; font-weight: bold; }
+    .md-content code {
+      background: #e3e6e8;
+      border: 1px solid #bdc3c7;
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-family: monospace;
+      word-break: break-all;
+    }
+    .md-content pre {
+      background: #e3e6e8;
+      border: 1px solid #bdc3c7;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+      white-space: pre-wrap; /* Ensures wrapping of long lines */
+      word-wrap: break-word;
+    }
+     .md-content pre code {
+        background: transparent;
+        border: none;
+        padding: 0;
+     }
+  </style>
 </head>
+
 <body>
-    <div class="game-container">
-        <canvas id="gameCanvas"></canvas>
-        <div id="screen-info">Loading...</div>
+  <div class="game-container">
+    <canvas id="gameCanvas"></canvas>
+    <div id="screen-info">Loading…</div>
+  </div>
+
+  <div id="messageModal" class="modal">
+    <div class="modal-content">
+      <span id="modalCloseX" class="close-button">&times;</span>
+      <h3 id="modalTitle" style="font-family: 'Press Start 2P', cursive; color: #e74c3c; margin-top: 0;">Notification</h3>
+      <div id="modalMessageText" class="md-content"></div>
+      <button id="modalCloseButton" style="
+          font-family:'Press Start 2P',cursive;
+          background:#e74c3c;
+          color:#fff;
+          padding:12px 20px;
+          border:none;
+          border-radius:8px;
+          cursor:pointer;
+          margin:25px auto 0;
+          display:block;
+          font-size:0.8em;">CLOSE</button>
     </div>
-    <div id="messageModal" class="modal">
-        <div class="modal-content">
-            <span id="modalCloseX" class="close-button">&times;</span>
-            <h3 id="modalTitle">Notification</h3>
-            <div id="modalMessageText" class="md-content"></div>
-            <button id="modalCloseButton">CLOSE</button>
-        </div>
-    </div>
-    <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const player = { width: 20, height: 20, x: 0, y: 0, color: '#2ecc71', outlineColor: '#27ae60', orientationDx: 0, orientationDy: -1, prevMouseX: 0, prevMouseY: 0 };
-        const world = [ [ { color: '#1f2c38', name: "Forbidden Zone Alpha", type: 'placeholder' }, { color: '#1f2c38', name: "Forbidden Zone Beta", type: 'placeholder' }, { color: '#1f2c38', name: "Forbidden Zone Gamma", type: 'placeholder' } ], [ { color: '#4a6b82', name: "Skills & Projects", type: 'skills_projects', shortName: "Skills" }, { color: '#34495e', name: "Welcome - Rayane Hachemi", type: 'presentation', shortName: "Home" }, { color: '#dde4e8', name: "My Blog", type: 'blog', shortName: "Blog" } ], [ { color: '#1f2c38', name: "Forbidden Zone Delta", type: 'placeholder' }, { color: '#212f3c', name: "Retro Arcade", type: 'game_zone', shortName: "Arcade" }, { color: '#1f2c38', name: "Forbidden Zone Epsilon", type: 'placeholder' } ] ];
-        let currentScreenX = 1; let currentScreenY = 1;
-        const screenInfoElement = document.getElementById('screen-info');
-        const messageModal = document.getElementById('messageModal');
-        const modalTitleElement = document.getElementById('modalTitle');
-        const modalMessageText = document.getElementById('modalMessageText');
-        const modalCloseButton = document.getElementById('modalCloseButton');
-        let currentInteractiveElements = [];
-        let globalMouseX = 0; let globalMouseY = 0;
-        const allowedScreenCoords = [ { x: 1, y: 1 }, { x: 0, y: 1 }, { x: 2, y: 1 }, { x: 1, y: 2 } ];
-        
-        let cachedSkills = null;
-        let cachedProjects = null;
+  </div>
 
-        // --- NEW: Responsive Font Size Calculator ---
-        // Mimics the behavior of CSS clamp() for the canvas
-        function getResponsiveFontSize(min, preferredVw, max) {
-            const vw = canvas.width / 100;
-            const preferredSize = vw * preferredVw;
-            return Math.max(min, Math.min(preferredSize, max));
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    /* ---------- STATE ---------- */
+    const player = { width: 22, height: 22, x: 0, y: 0, color: "#2ecc71", outlineColor: "#27ae60", orientationDx: 0, orientationDy: -1, prevMouseX: 0, prevMouseY: 0 };
+    const world = [ [ { color: "#1f2c38", name: "Forbidden Zone Alpha", type: "placeholder" }, { color: "#1f2c38", name: "Forbidden Zone Beta", type: "placeholder" }, { color: "#1f2c38", name: "Forbidden Zone Gamma", type: "placeholder" } ], [ { color: "#4a6b82", name: "Skills & Projects", type: "skills_projects", shortName: "Skills" }, { color: "#34495e", name: "Welcome – Rayane Hachemi", type: "presentation", shortName: "Home" }, { color: "#dde4e8", name: "My Blog", type: "blog", shortName: "Blog" } ], [ { color: "#1f2c38", name: "Forbidden Zone Delta", type: "placeholder" }, { color: "#212f3c", name: "Retro Arcade", type: "game_zone", shortName: "Arcade" }, { color: "#1f2c38", name: "Forbidden Zone Epsilon", type: "placeholder" } ] ];
+    let currentScreenX = 1, currentScreenY = 1;
+    const allowedScreenCoords = [ { x: 1, y: 1 }, { x: 0, y: 1 }, { x: 2, y: 1 }, { x: 1, y: 2 } ];
+    const screenInfoElement = document.getElementById("screen-info");
+    let cachedSkills = null, cachedProjects = null;
+    let currentInteractiveElements = [];
+    let globalMouseX = 0, globalMouseY = 0;
+
+    /* ---------- SCROLL MANAGEMENT ---------- */
+    let scrollOffset = 0;
+    let currentContentHeight = 0;
+    const SCROLLABLE_TYPES = ["skills_projects", "blog", "presentation"];
+    
+    window.addEventListener("wheel", (e) => {
+      if (!SCROLLABLE_TYPES.includes(world[currentScreenY][currentScreenX].type)) return;
+      const delta = e.deltaY;
+      const maxScroll = Math.max(currentContentHeight - canvas.height, 0);
+      scrollOffset = Math.min(0, Math.max(-maxScroll, scrollOffset - delta));
+    });
+
+    let touchStartY = null;
+    canvas.addEventListener("touchstart", (e) => { if (SCROLLABLE_TYPES.includes(world[currentScreenY][currentScreenX].type)) { touchStartY = e.touches[0].clientY; } }, { passive: true });
+    canvas.addEventListener("touchmove", (e) => {
+      if (touchStartY === null) return;
+      const touchY = e.touches[0].clientY;
+      const delta = touchY - touchStartY;
+      const maxScroll = Math.max(currentContentHeight - canvas.height, 0);
+      scrollOffset = Math.min(0, Math.max(-maxScroll, scrollOffset + delta));
+      touchStartY = touchY;
+      if (SCROLLABLE_TYPES.includes(world[currentScreenY][currentScreenX].type)) e.preventDefault();
+    }, { passive: false });
+    canvas.addEventListener("touchend", () => touchStartY = null);
+    canvas.addEventListener("touchcancel", () => touchStartY = null);
+
+    /* ---------- UTILS ---------- */
+    const getResponsiveFontSize = (min, preferredVw, max) => {
+        const vw = canvas.width / 100;
+        const preferredSize = vw * preferredVw;
+        return Math.max(min, Math.min(preferredSize, max));
+    }
+    const drawText = (txt, x, y, font, color, align = "left", baseline = "top") => { ctx.font = font; ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = baseline; ctx.fillText(txt, x, y); };
+    const drawRoundedRect = (x,y,w,h,r,fFill,fStroke=null,lw=2) => { ctx.beginPath(); ctx.moveTo(x+r, y); ctx.lineTo(x+w-r, y); ctx.quadraticCurveTo(x+w, y, x+w, y+r); ctx.lineTo(x+w, y+h-r); ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h); ctx.lineTo(x+r, y+h); ctx.quadraticCurveTo(x, y+h, x, y+h-r); ctx.lineTo(x, y+r); ctx.quadraticCurveTo(x, y, x+r, y); ctx.closePath(); if (fFill) { ctx.fillStyle = fFill; ctx.fill(); } if (fStroke) { ctx.lineWidth = lw; ctx.strokeStyle = fStroke; ctx.stroke(); } };
+    const wrapText = (txt,maxW,lineH,font,x,y,color,align="left") => { ctx.font=font; ctx.fillStyle=color; ctx.textAlign=align; const words=txt.split(" "); let line=""; let curY=y; words.forEach((w,i)=>{ const test=line+w+" "; if(ctx.measureText(test).width>maxW&&i>0){ ctx.fillText(line,x,curY); line=w+" "; curY+=lineH; }else{ line=test; } }); ctx.fillText(line,x,curY); return curY+lineH; };
+    const measureHeight = (txt,maxW,lineH,font) => { ctx.font=font; const words=txt.split(" "); let line=""; let lines=1; if(!txt) return 0; words.forEach((w,i)=>{ const test=line+w+" "; if(ctx.measureText(test).width>maxW&&i>0){ line=w+" "; lines++; }else line=test; }); return lines*lineH; };
+
+    /* ---------- DATA LOADING ---------- */
+    async function loadSkillsAndProjectsData() {
+        try {
+            const [s, p] = await Promise.all([fetch("documents/skills.md"), fetch("documents/projects.md")]);
+            cachedSkills = (await s.text()).split("\n").filter(l => l.trim().startsWith("- ")).map(l => l.trim().slice(2).trim());
+            cachedProjects = (await p.text()).split(/\s*---\s*/).map(block => { if (!block.trim()) return null; const lines = block.trim().split("\n"); const title = lines.shift().replace(/^##\s*/, "").trim(); const desc = lines.join("\n").trim(); return { title, desc }; }).filter(Boolean);
+        } catch (err) {
+            console.error(err); cachedSkills = ["Error loading skills"]; cachedProjects = [{ title: "Error", desc: "Could not load projects" }];
         }
+    }
 
-        function isScreenTransitionAllowed(toX, toY) { return allowedScreenCoords.some(coord => coord.x === toX && coord.y === toY); }
-        function drawText(text, x, y, font, color, align = 'left', baseline = 'top') { ctx.font = font; ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = baseline; ctx.fillText(text, x, y); }
-        function drawWrappedText(text, x, y, maxWidth, lineHeight, font, color, align = 'left') { ctx.font = font; ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = 'top'; const words = text.split(' '); let line = ''; let currentY = y; for (let n = 0; n < words.length; n++) { const testLine = line + words[n] + ' '; const metrics = ctx.measureText(testLine); const testWidth = metrics.width; if (testWidth > maxWidth && n > 0) { ctx.fillText(line, x, currentY); line = words[n] + ' '; currentY += lineHeight; } else { line = testLine; } } ctx.fillText(line, x, currentY); return currentY + lineHeight; }
-        function drawRoundedRect(x, y, width, height, radius, fillColor, strokeColor = null, lineWidth = 2) { ctx.beginPath(); ctx.moveTo(x + radius, y); ctx.lineTo(x + width - radius, y); ctx.quadraticCurveTo(x + width, y, x + width, y + radius); ctx.lineTo(x + width, y + height - radius); ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height); ctx.lineTo(x + radius, y + height); ctx.quadraticCurveTo(x, y + height, x, y + height - radius); ctx.lineTo(x, y + radius); ctx.quadraticCurveTo(x, y, x + radius, y); ctx.closePath(); if (fillColor) { ctx.fillStyle = fillColor; ctx.fill(); } if (strokeColor) { ctx.strokeStyle = strokeColor; ctx.lineWidth = lineWidth; ctx.stroke(); } }
-        
-        async function loadSkillsAndProjectsData() {
-            try {
-                const [skillsResponse, projectsResponse] = await Promise.all([
-                    fetch('documents/skills.md'),
-                    fetch('documents/projects.md')
-                ]);
-                const skillsText = await skillsResponse.text();
-                cachedSkills = skillsText.split('\n').filter(line => line.trim().startsWith('- ')).map(line => line.trim().substring(2).trim());
-                
-                const projectsText = await projectsResponse.text();
-                cachedProjects = projectsText.split(/\s*---\s*/).map(projectBlock => {
-                    if (!projectBlock.trim()) return null;
-                    const lines = projectBlock.trim().split('\n');
-                    const titleLine = lines.shift(); 
-                    const title = titleLine.replace('## ', '').trim();
-                    const desc = lines.join('\n').trim();
-                    return { title, desc };
-                }).filter(p => p);
-            } catch (error) {
-                console.error("Failed to load skills or projects data:", error);
-                cachedSkills = ["Error loading skills."];
-                cachedProjects = [{title: "Error", desc: "Could not load projects data."}];
-            }
-        }
+    /* ---------- DRAWING SCREENS ---------- */
+    function drawPresentationScreen() {
+        currentInteractiveElements = [];
+        const padding = canvas.width * 0.07;
+        const contentW = canvas.width - 2 * padding;
+        let y = canvas.height * 0.15 + scrollOffset;
 
-        function showModal(title, messageHTML) {
-            modalTitleElement.textContent = title;
-            modalMessageText.innerHTML = messageHTML;
-            messageModal.style.display = 'flex';
-            canvas.style.cursor = 'default';
-        }
-        modalCloseButton.onclick = () => { messageModal.style.display = 'none'; canvas.style.cursor = 'none'; };
-        document.getElementById('modalCloseX').onclick = () => { messageModal.style.display = 'none'; canvas.style.cursor = 'none'; };
-        messageModal.addEventListener('click', (event) => { if (event.target === messageModal) { messageModal.style.display = 'none'; canvas.style.cursor = 'none'; } });
-        
-        function updateScreenInfo() { let screenData = world[currentScreenY][currentScreenX]; let screenName = screenData.name; screenInfoElement.textContent = screenName; }
-        function clearCanvas() { ctx.fillStyle = world[currentScreenY][currentScreenX].color; ctx.fillRect(0, 0, canvas.width, canvas.height); }
-        
-        function drawPlayer() { ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.beginPath(); ctx.ellipse(player.x + player.width / 2, player.y + player.height + 2, player.width / 2, 4, 0, 0, 2 * Math.PI); ctx.fill(); ctx.fillStyle = player.color; ctx.fillRect(player.x, player.y, player.width, player.height); ctx.strokeStyle = player.outlineColor; ctx.lineWidth = 2; ctx.strokeRect(player.x, player.y, player.width, player.height); ctx.fillStyle = 'black'; const eyeSize = 3; const eyeOffset = 4; if (player.orientationDy < -0.5) { ctx.fillRect(player.x + eyeOffset, player.y + eyeOffset, eyeSize, eyeSize); ctx.fillRect(player.x + player.width - eyeOffset - eyeSize, player.y + eyeOffset, eyeSize, eyeSize); } else if (player.orientationDy > 0.5) { ctx.fillRect(player.x + eyeOffset, player.y + player.height - eyeOffset - eyeSize, eyeSize, eyeSize); ctx.fillRect(player.x + player.width - eyeOffset - eyeSize, player.y + player.height - eyeOffset - eyeSize, eyeSize, eyeSize); } else if (player.orientationDx < -0.5) { ctx.fillRect(player.x + eyeOffset, player.y + eyeOffset, eyeSize, eyeSize); ctx.fillRect(player.x + eyeOffset, player.y + player.height - eyeOffset - eyeSize, eyeSize, eyeSize); } else if (player.orientationDx > 0.5) { ctx.fillRect(player.x + player.width - eyeOffset - eyeSize, player.y + eyeOffset, eyeSize, eyeSize); ctx.fillRect(player.x + player.width - eyeOffset - eyeSize, player.y + player.height - eyeOffset - eyeSize, eyeSize, eyeSize); } else { ctx.fillRect(player.x + eyeOffset, player.y + eyeOffset, eyeSize, eyeSize); ctx.fillRect(player.x + player.width - eyeOffset - eyeSize, player.y + eyeOffset, eyeSize, eyeSize); } }
-        
-        function drawPresentationScreen() {
-            currentInteractiveElements = [];
-            const padding = canvas.width * 0.1;
-            const contentWidth = canvas.width - 2 * padding;
-            let yPos = canvas.height * 0.15;
+        const titleSize = getResponsiveFontSize(22, 4, 38);
+        drawText("Welcome!", canvas.width / 2, y, `bold ${titleSize}px 'Press Start 2P'`, "#ecf0f1", "center");
+        y += titleSize + 30;
 
-            const titleSize = getResponsiveFontSize(24, 4, 40);
-            drawText("Welcome!", canvas.width / 2, yPos, `bold ${titleSize}px 'Press Start 2P'`, '#ecf0f1', 'center');
-            yPos += titleSize + 30;
+        const intro = "I am Rayane Hachemi, a creative and passionate Machine-Learning Engineer. This personal website is still under construction (by Gemini). Feel free to explore it!";
+        const introSize = getResponsiveFontSize(15, 2, 19);
+        y = wrapText(intro, contentW, introSize * 1.5, `${introSize}px 'Roboto'`, canvas.width / 2, y, "#bdc3c7", "center");
+        y += 30;
 
-            const introText = "I am Rayane Hachemi, a creative and passionate Machine Learning Engineer. This personal website is still under construction (by Gemini). Feel free to explore it!";
-            const introSize = getResponsiveFontSize(16, 2, 20);
-            yPos = drawWrappedText(introText, canvas.width / 2, yPos, contentWidth, introSize * 1.4, `${introSize}px 'Roboto'`, '#bdc3c7', 'center');
-            yPos += 50;
+        const links = [{ id: "email", txt: "EMAIL", url: "mailto:rhmi@outlook.fr" }, { id: "lin", txt: "LINKEDIN", url: "https://www.linkedin.com/in/rhmi/" }, { id: "git", txt: "GITHUB", url: "https://github.com/rayanehmi" }, { id: "cv", txt: "DOWNLOAD CV", url: "documents/cv.pdf" }];
+        const linkSize = getResponsiveFontSize(13, 1.8, 18);
+        const linkFont = `${linkSize}px 'Press Start 2P'`;
+        const linkHeight = linkSize + 22;
+        const spacing = 18;
+        links.forEach(l => {
+            ctx.font = linkFont;
+            const w = ctx.measureText(l.txt).width;
+            const x = canvas.width / 2 - w / 2;
+            const hovered = globalMouseX >= x && globalMouseX <= x + w && globalMouseY >= y && globalMouseY <= y + linkHeight;
+            drawText(l.txt, canvas.width / 2, y + linkHeight / 2, linkFont, hovered ? "#e74c3c" : "#3498db", "center", "middle");
+            currentInteractiveElements.push({ ...l, action: "open_link", x, y, width: w, height: linkHeight });
+            y += linkHeight + spacing;
+        });
 
-            const linkSize = getResponsiveFontSize(14, 1.8, 18);
-            const linkFont = `${linkSize}px 'Press Start 2P'`;
-            const linkColor = '#3498db'; const linkHoverColor = '#e74c3c';
-            const linkHeight = linkSize + 20;
-            const linkSpacing = 20;
+        currentContentHeight = y - scrollOffset + 50;
+    }
 
-            const links = [ { id: 'email', text: "EMAIL", action: 'open_link', url: 'mailto:rhmi@outlook.fr' }, { id: 'linkedin', text: "LINKEDIN", action: 'open_link', url: 'https://www.linkedin.com/in/rhmi/' }, { id: 'github', text: "GITHUB", action: 'open_link', url: 'https://github.com/rayanehmi' }, { id: 'cv', text: "DOWNLOAD CV", action: 'open_link', url: 'documents/cv.pdf' } ];
-            links.forEach(link => { ctx.font = linkFont; const textMetrics = ctx.measureText(link.text); const textWidth = textMetrics.width; const linkX = canvas.width / 2 - textWidth / 2; const isHovered = globalMouseX >= linkX && globalMouseX <= linkX + textWidth && globalMouseY >= yPos && globalMouseY <= yPos + linkHeight; drawText(link.text, canvas.width / 2, yPos + linkHeight / 2, linkFont, isHovered ? linkHoverColor : linkColor, 'center', 'middle'); currentInteractiveElements.push({ ...link, x: linkX, y: yPos, width: textWidth, height: linkHeight, isHovered }); yPos += linkHeight + linkSpacing; });
-        }
+    function drawSkillsProjectsScreen() {
+        currentInteractiveElements = [];
+        const isMobile = canvas.width < 768;
+        const pad = canvas.width * (isMobile ? 0.08 : 0.05);
+        const titleSize = getResponsiveFontSize(20, 3, 28);
+        const sectionSize = getResponsiveFontSize(16, 2.4, 24);
+        const itemSize = getResponsiveFontSize(14, 1.9, 18);
+        const titleFont = `bold ${titleSize}px 'Press Start 2P'`, itemFont = `${itemSize}px 'Roboto'`, sectionFont = `bold ${sectionSize}px 'Press Start 2P'`;
+        const textColor = "#ecf0f1", hl = "#f1c40f";
 
-        function measureWrappedTextHeight(text, maxWidth, lineHeight, font) {
-            const originalFont = ctx.font;
-            ctx.font = font;
-            const words = text.split(' ');
-            let line = '';
-            let lineCount = 1;
-            if (!text || words.length === 0) return 0;
-            for (let n = 0; n < words.length; n++) {
-                const testLine = line + words[n] + ' ';
-                const metrics = ctx.measureText(testLine);
-                if (metrics.width > maxWidth && n > 0) {
-                    line = words[n] + ' ';
-                    lineCount++;
-                } else {
-                    line = testLine;
-                }
-            }
-            ctx.font = originalFont;
-            return lineCount * lineHeight;
-        }
+        let y = canvas.height * 0.1 + scrollOffset;
+        drawText("Skills & Projects", canvas.width / 2, y, titleFont, textColor, "center");
+        y += titleSize + 30;
 
-        function drawSkillsProjectsScreen() {
-            currentInteractiveElements = [];
-            const isMobile = canvas.width < 768;
-            const padding = canvas.width * (isMobile ? 0.08 : 0.05);
-            
-            const titleSize = getResponsiveFontSize(22, 3, 30);
-            const sectionTitleSize = getResponsiveFontSize(18, 2.5, 24);
-            const itemSize = getResponsiveFontSize(14, 1.8, 18);
-            const titleFont = `bold ${titleSize}px 'Press Start 2P'`;
-            const sectionTitleFont = `bold ${sectionTitleSize}px 'Press Start 2P'`;
-            const itemFont = `${itemSize}px 'Roboto'`;
-
-            const textColor = '#ecf0f1';
-            const highlightColor = '#f1c40f';
-            let yPos = canvas.height * 0.1;
-
-            drawText("Skills & Projects", canvas.width / 2, yPos, titleFont, textColor, 'center');
-            yPos += titleSize + 40;
-
-            // --- Draw Skills ---
-            let skillsX = padding;
-            let skillsY = yPos;
-            drawText("Skills:", skillsX, skillsY, sectionTitleFont, textColor);
-            skillsY += sectionTitleSize + 20;
-            
-            if (!cachedSkills) {
-                drawText("Loading skills...", skillsX, skillsY, itemFont, textColor);
-            } else {
-                cachedSkills.forEach(skill => {
-                    ctx.font = itemFont; 
-                    const textMetrics = ctx.measureText(skill);
-                    const skillWidth = textMetrics.width;
-                    const skillHeight = itemSize + 10; 
-                    const textRenderY = skillsY + skillHeight / 2; 
-                    const isHovered = globalMouseX >= skillsX && globalMouseX <= skillsX + skillWidth + 20 && globalMouseY >= skillsY && globalMouseY <= skillsY + skillHeight;
-                    
-                    drawText(skill, skillsX + 20, textRenderY, itemFont, isHovered ? highlightColor : textColor, 'left', 'middle');
-                    if(isHovered) drawText(">", skillsX, textRenderY, itemFont, highlightColor, 'left', 'middle');
-                    currentInteractiveElements.push({ id: `skill_${skill}`, type: 'info', text: skill, x: skillsX, y: skillsY, width: skillWidth + 20, height: skillHeight, isHovered });
-                    skillsY += skillHeight + 10;
-                });
-            }
-
-            // --- Draw Projects ---
-            let projectsX = isMobile ? padding : canvas.width / 2 + padding / 2;
-            let projectsY = isMobile ? skillsY + 40 : yPos; // Stack below skills on mobile
-            let projectsWidth = isMobile ? canvas.width - (padding * 2) : canvas.width * 0.4;
-            
-            drawText("Projects:", projectsX, projectsY, sectionTitleFont, textColor);
-            projectsY += sectionTitleSize + 20;
-
-            if (!cachedProjects) {
-                drawText("Loading projects...", projectsX, projectsY, itemFont, textColor);
-            } else {
-                const cardPadding = 15;
-                const projectTitleSize = getResponsiveFontSize(16, 2, 20);
-                const projectDescSize = getResponsiveFontSize(12, 1.5, 16);
-                const projectTitleFont = `bold ${projectTitleSize}px 'Roboto'`;
-                const projectDescFont = `${projectDescSize}px 'Roboto'`;
-                const projectDescLineHeight = projectDescSize * 1.3;
-
-                cachedProjects.forEach(proj => {
-                    const titleAreaHeight = projectTitleSize + 15;
-                    const descMaxWidth = projectsWidth - (cardPadding * 2);
-                    const descriptionHeight = measureWrappedTextHeight(proj.desc, descMaxWidth, projectDescLineHeight, projectDescFont);
-                    const dynamicCardHeight = cardPadding + titleAreaHeight + descriptionHeight + cardPadding;
-                    
-                    const isHovered = globalMouseX >= projectsX && globalMouseX <= projectsX + projectsWidth && globalMouseY >= projectsY && globalMouseY <= projectsY + dynamicCardHeight;
-                    
-                    drawRoundedRect(projectsX, projectsY, projectsWidth, dynamicCardHeight, 10, 
-                        isHovered ? '#567a94' : '#405d72', isHovered ? highlightColor : '#6b8ea8');
-                    
-                    drawText(proj.title, projectsX + cardPadding, projectsY + cardPadding, projectTitleFont, textColor);
-                    drawWrappedText(proj.desc, projectsX + cardPadding, projectsY + cardPadding + titleAreaHeight - 5, descMaxWidth, projectDescLineHeight, projectDescFont, '#bdc3c7');
-                    
-                    projectsY += dynamicCardHeight + 20;
-                });
-            }
-        }
-        
-        function drawBlogScreen() {
-            currentInteractiveElements = [];
-            const blogTextColor = '#2c3e50';
-            const blogTitleColor = '#e74c3c';
-            const padding = canvas.width * 0.05;
-
-            const titleSize = getResponsiveFontSize(22, 3, 30);
-            const articleTitleSize = getResponsiveFontSize(16, 2.2, 22);
-            const articleMetaSize = getResponsiveFontSize(12, 1.5, 14);
-            const titleFont = `bold ${titleSize}px 'Press Start 2P'`;
-            const articleTitleFont = `bold ${articleTitleSize}px 'Roboto'`;
-            const articleMetaFont = `${articleMetaSize}px 'Roboto'`;
-            
-            let yPos = canvas.height * 0.1;
-            drawText("My Blog Corner", canvas.width / 2, yPos, titleFont, blogTitleColor, 'center');
-            yPos += titleSize + 40;
-
-            const articles = [
-                { id: 'blog1', title: "Agentic LLMs in Gaming", date: "June 10, 2025", path: "documents/blog1.md" },
-                { id: 'blog2', title: "Tutorial: How to create a superhuman computer virus that can take over the world", date: "June 10, 2025", path: "documents/blog2.md" }
-            ];
-
-            const articleCardWidth = Math.min(canvas.width * 0.9, 700); 
-            const articleCardX = canvas.width / 2 - articleCardWidth / 2;
-
-            articles.forEach(article => {
-                const titleMaxWidth = articleCardWidth - 40; // card padding
-                const titleLineHeight = articleTitleSize * 1.2;
-                const titleMeasuredHeight = measureWrappedTextHeight(article.title, titleMaxWidth, titleLineHeight, articleTitleFont);
-                
-                // Dynamic card height based on title and metadata
-                const articleHeight = 20 + titleMeasuredHeight + 10 + articleMetaSize + 20; 
-
-                const isHovered = globalMouseX >= articleCardX && globalMouseX <= articleCardX + articleCardWidth && globalMouseY >= yPos && globalMouseY <= yPos + articleHeight;
-                
-                drawRoundedRect(articleCardX, yPos, articleCardWidth, articleHeight, 8, isHovered ? '#f8f9fa' : '#ffffff', isHovered ? blogTitleColor : '#bdc3c7');
-                
-                // Use the wrapped text function for drawing the title to handle line breaks
-                drawWrappedText(article.title, articleCardX + 20, yPos + 20, titleMaxWidth, titleLineHeight, articleTitleFont, isHovered ? blogTitleColor : blogTextColor);
-                
-                // Position metadata below the calculated title height
-                drawText(article.date, articleCardX + 20, yPos + 20 + titleMeasuredHeight + 10, articleMetaFont, '#7f8c8d');
-                
-                currentInteractiveElements.push({ ...article, type: 'blog_article', x: articleCardX, y: yPos, width: articleCardWidth, height: articleHeight, action: 'show_article', isHovered });
-                yPos += articleHeight + 20;
+        /* SKILLS */
+        let sx = pad, sy = y;
+        drawText("Skills:", sx, sy, sectionFont, textColor);
+        sy += sectionSize + 15;
+        if (!cachedSkills) drawText("Loading…", sx, sy, itemFont, textColor);
+        else {
+            cachedSkills.forEach(sk => {
+                ctx.font = itemFont; const tw = ctx.measureText(sk).width; const h = itemSize + 8;
+                const hovered = globalMouseX >= sx && globalMouseX <= sx + tw + 20 && globalMouseY >= sy && globalMouseY <= sy + h;
+                drawText(sk, sx + 20, sy + h / 2, itemFont, hovered ? hl : textColor, "left", "middle");
+                if (hovered) drawText(">", sx, sy + h / 2, itemFont, hl, "left", "middle");
+                currentInteractiveElements.push({ id: `skill_${sk}`, x: sx, y: sy, width: tw + 20, height: h, action: "noop" });
+                sy += itemSize + 12;
             });
         }
-        
-        function drawGameZoneScreen() {
-            currentInteractiveElements = [];
-            const isMobile = canvas.width < 800;
-            const padding = canvas.width * 0.05;
-            
-            const titleSize = getResponsiveFontSize(20, 2.8, 28);
-            const itemSize = getResponsiveFontSize(14, 1.8, 18);
-            const listTitleSize = getResponsiveFontSize(15, 1.9, 19);
-            const titleFont = `bold ${titleSize}px 'Press Start 2P'`;
-            const itemFont = `${itemSize}px 'Roboto'`;
-            const listTitleFont = `bold ${listTitleSize}px 'Press Start 2P'`;
 
-            const textColor = '#ecf0f1';
-            const highlightColor = '#e74c3c';
-            
-            let yPos = canvas.height * 0.1;
+        /* PROJECTS */
+        let px = isMobile ? pad : canvas.width / 2 + pad * 0.5;
+        let py = isMobile ? sy + 30 : y;
+        drawText("Projects:", px, py, sectionFont, textColor);
+        py += sectionSize + 15;
 
-            drawText("Retro Arcade (under construction)", canvas.width / 2, yPos, titleFont, textColor, 'center');
-            yPos += titleSize + 20;
+        const cardW = isMobile ? canvas.width - pad * 2 : Math.min(canvas.width * 0.42, 420);
+        const cardPad = 15;
+        const pTitleSize = getResponsiveFontSize(15, 2, 20);
+        const pDescSize = getResponsiveFontSize(12, 1.6, 16);
+        const pTitleFont = `bold ${pTitleSize}px 'Roboto'`, pDescFont = `${pDescSize}px 'Roboto'`;
+        const lineH = pDescSize * 1.3;
 
-            const gameScreenWidth = isMobile ? canvas.width - padding * 2 : canvas.width * 0.45;
-            const gameScreenHeight = canvas.height * 0.4;
-            const gameScreenX = isMobile ? padding : padding;
-            const gameScreenY = yPos;
-            drawRoundedRect(gameScreenX, gameScreenY, gameScreenWidth, gameScreenHeight, 10, '#000000', '#34495e');
-            const gameTextSize = getResponsiveFontSize(14, 2, 18);
-            drawText("Mini-Game Here", gameScreenX + gameScreenWidth/2, gameScreenY + gameScreenHeight/2, `bold ${gameTextSize}px 'Press Start 2P'`, '#555', 'center', 'middle');
-
-            yPos = isMobile ? gameScreenY + gameScreenHeight + 30 : yPos;
-            const gameListX = isMobile ? padding : gameScreenX + gameScreenWidth + padding * 0.5;
-            let gameListY = yPos;
-            
-            drawText("Select Game:", gameListX, gameListY, listTitleFont, textColor);
-            gameListY += listTitleSize + 15;
-
-            const miniGames = [ { id: 'game1', title: "Astro Blaster" }, { id: 'game2', title: "Pixel Hopper" }, { id: 'game3', title: "Retro Drive" }, { id: 'game4', title: "Maze Crawler" } ];
-            const gameItemHeight = itemSize + 16;
-            const gameItemSpacing = 12;
-            const gameListWidth = isMobile ? gameScreenWidth : canvas.width - gameListX - padding;
-
-            miniGames.forEach(game => {
-                if (!isMobile && gameListY + gameItemHeight > gameScreenY + gameScreenHeight) return;
-                ctx.font = itemFont;
-                const textMetrics = ctx.measureText(game.title);
-                const gameItemRenderWidth = Math.min(textMetrics.width + 20, gameListWidth - 10);
-                const isHovered = globalMouseX >= gameListX && globalMouseX <= gameListX + gameItemRenderWidth && globalMouseY >= gameListY && globalMouseY <= gameListY + gameItemHeight;
-                drawRoundedRect(gameListX, gameListY, gameItemRenderWidth, gameItemHeight, 5, isHovered ? 'rgba(255,255,255,0.1)' : 'transparent', isHovered ? highlightColor : 'transparent');
-                drawText(game.title, gameListX + 10, gameListY + gameItemHeight / 2, itemFont, isHovered ? highlightColor : textColor, 'left', 'middle');
-                currentInteractiveElements.push({ ...game, x: gameListX, y: gameListY, width: gameItemRenderWidth, height: gameItemHeight, action: 'load_minigame', isHovered });
-                gameListY += gameItemHeight + gameItemSpacing;
+        if (!cachedProjects) drawText("Loading…", px, py, itemFont, textColor);
+        else {
+            cachedProjects.forEach(pr => {
+                const descH = measureHeight(pr.desc, cardW - cardPad * 2, lineH, pDescFont);
+                const cardH = cardPad + (pTitleSize + 10) + descH + cardPad;
+                const hovered = globalMouseX >= px && globalMouseX <= px + cardW && globalMouseY >= py && globalMouseY <= py + cardH;
+                drawRoundedRect(px, py, cardW, cardH, 8, hovered ? "#567a94" : "#405d72", hovered ? hl : "#6b8ea8");
+                drawText(pr.title, px + cardPad, py + cardPad, pTitleFont, textColor);
+                wrapText(pr.desc, cardW - cardPad * 2, lineH, pDescFont, px + cardPad, py + cardPad + pTitleSize + 10, "#bdc3c7");
+                py += cardH + 20;
             });
         }
-        
-        function drawPlaceholderScreen() { currentInteractiveElements = []; const screenData = world[currentScreenY][currentScreenX]; drawText(screenData.name, canvas.width / 2, canvas.height / 2 - 30, `bold 24px 'Press Start 2P'`, '#ecf0f1', 'center'); drawText("Inaccessible Zone", canvas.width / 2, canvas.height / 2 + 20, `20px 'Roboto'`, '#7f8c8d', 'center'); }
-        function drawCurrentScreenContent() { const screenType = world[currentScreenY][currentScreenX].type; switch (screenType) { case 'presentation': drawPresentationScreen(); break; case 'skills_projects': drawSkillsProjectsScreen(); break; case 'blog': drawBlogScreen(); break; case 'game_zone': drawGameZoneScreen(); break; case 'placeholder': default: drawPlaceholderScreen(); break; } }
-        
-        function drawStaticTransitionLabels() {
-            // FIX: Hide transition labels on mobile to prevent overlap
-            if (canvas.width < 768) return;
+        currentContentHeight = (isMobile ? py : Math.max(sy, py)) - scrollOffset + 40;
+    }
 
-            const labelSize = getResponsiveFontSize(12, 1.6, 16);
-            const labelFont = `bold ${labelSize}px 'Press Start 2P'`;
-            const labelColor = '#bdc3c7';
-            const labelOffset = 25;
+    function drawBlogScreen() {
+        currentInteractiveElements = [];
+        const titleSize = getResponsiveFontSize(20, 3, 28);
+        const itemTitleSize = getResponsiveFontSize(16, 2.3, 22);
+        const metaSize = getResponsiveFontSize(12, 1.5, 14);
+        const titleFont = `bold ${titleSize}px 'Press Start 2P'`, itemTitleFont = `bold ${itemTitleSize}px 'Roboto'`, metaFont = `${metaSize}px 'Roboto'`;
+        const mainColor = "#2c3e50", accent = "#e74c3c";
 
-            if (currentScreenX === 1 && currentScreenY === 1) { 
-                if (isScreenTransitionAllowed(0, 1)) { const target = world[1][0]; drawText(`← ${target.shortName}`, labelOffset, canvas.height / 2, labelFont, labelColor, 'left', 'middle'); } 
-                if (isScreenTransitionAllowed(2, 1)) { const target = world[1][2]; drawText(`${target.shortName} →`, canvas.width - labelOffset, canvas.height / 2, labelFont, labelColor, 'right', 'middle'); } 
-                if (isScreenTransitionAllowed(1, 2)) { const target = world[2][1]; drawText(`↓ ${target.shortName}`, canvas.width / 2, canvas.height - labelOffset, labelFont, labelColor, 'center', 'bottom'); } } 
-            else if (currentScreenX === 0 && currentScreenY === 1) { if (isScreenTransitionAllowed(1, 1)) { const target = world[1][1]; drawText(`${target.shortName} →`, canvas.width - labelOffset, canvas.height / 2, labelFont, labelColor, 'right', 'middle'); } } 
-            else if (currentScreenX === 2 && currentScreenY === 1) { if (isScreenTransitionAllowed(1, 1)) { const target = world[1][1]; drawText(`← ${target.shortName}`, labelOffset, canvas.height / 2, labelFont, labelColor, 'left', 'middle'); } } 
-            else if (currentScreenX === 1 && currentScreenY === 2) { if (isScreenTransitionAllowed(1, 1)) { const target = world[1][1]; drawText(`↑ ${target.shortName}`, canvas.width / 2, labelOffset, labelFont, labelColor, 'center', 'top'); } }
-        }
-        
-        function handleMouseMove(e) { const rect = canvas.getBoundingClientRect(); globalMouseX = e.clientX - rect.left; globalMouseY = e.clientY - rect.top; player.x = globalMouseX - player.width / 2; player.y = globalMouseY - player.height / 2; player.x = Math.max(0, Math.min(canvas.width - player.width, player.x)); player.y = Math.max(0, Math.min(canvas.height - player.height, player.y)); const dx = globalMouseX - player.prevMouseX; const dy = globalMouseY - player.prevMouseY; const dist = Math.sqrt(dx*dx + dy*dy); if (dist > 1) { player.orientationDx = dx / dist; player.orientationDy = dy / dist; } player.prevMouseX = globalMouseX; player.prevMouseY = globalMouseY; currentInteractiveElements.forEach(el => { el.isHovered = globalMouseX >= el.x && globalMouseX <= el.x + el.width && globalMouseY >= el.y && globalMouseY <= el.y + el.height; }); }
-        
-        function handleCanvasClick(e) {
-            if (messageModal.style.display === 'flex') return;
-            for (const el of currentInteractiveElements) {
-                if (el.isHovered) {
-                    switch (el.action) {
-                        case 'open_link': window.open(el.url, '_blank'); return;
-                        case 'show_article':
-                            showModal(el.title, '<em>Loading content...</em>');
-                            fetch(el.path)
-                                .then(response => { if (!response.ok) { throw new Error(`File not found: ${response.statusText}`); } return response.text(); })
-                                .then(markdown => {
-                                    const contentHtml = marked.parse(markdown);
-                                    modalMessageText.innerHTML = `<em>${el.date}</em><hr>${contentHtml}`;
-                                })
-                                .catch(error => {
-                                    console.error('Error fetching or parsing article:', error);
-                                    modalMessageText.innerHTML = `<p style="color: #c0392b;"><strong>Error:</strong> Could not load article.</p><p>Please ensure the file <code>${el.path}</code> exists.</p>`;
-                                });
-                            return;
-                        case 'load_minigame': showModal("Loading Game", `Loading: ${el.title}... (Simulation)`); return;
-                    }
+        let y = canvas.height * 0.1 + scrollOffset;
+        drawText("My Blog Corner", canvas.width / 2, y, titleFont, accent, "center");
+        y += titleSize + 30;
+
+        const articles = [{ id: "blog1", title: "Agentic LLMs in Gaming", date: "June 10 2025", path: "documents/blog1.md" }, { id: "blog2", title: "Tutorial: How to create a super-human computer virus", date: "June 10 2025", path: "documents/blog2.md" }];
+        const cardW = Math.min(canvas.width * 0.86, 700);
+        const x = canvas.width / 2 - cardW / 2;
+
+        articles.forEach(a => {
+            const titleLineHeight = itemTitleSize * 1.25;
+            const titleHeight = measureHeight(a.title, cardW - 40, titleLineHeight, itemTitleFont);
+            const cardH = 20 + titleHeight + 10 + metaSize + 15;
+            const hovered = globalMouseX >= x && globalMouseX <= x + cardW && globalMouseY >= y && globalMouseY <= y + cardH;
+            drawRoundedRect(x, y, cardW, cardH, 8, hovered ? "#f8f9fa" : "#ffffff", hovered ? accent : "#bdc3c7");
+            wrapText(a.title, cardW - 40, titleLineHeight, itemTitleFont, x + 20, y + 20, hovered ? accent : mainColor);
+            drawText(a.date, x + 20, y + 20 + titleHeight + 10, metaFont, "#7f8c8d");
+            currentInteractiveElements.push({ ...a, type: "blog_article", action: "show_article", x, y, width: cardW, height: cardH });
+            y += cardH + 20;
+        });
+        currentContentHeight = y - scrollOffset + 30;
+    }
+
+    function drawGameZoneScreen() {
+        currentInteractiveElements = [];
+        const titleSize = getResponsiveFontSize(18, 2.8, 26);
+        const titleFont = `bold ${titleSize}px 'Press Start 2P'`;
+        drawText("Retro Arcade (under construction)", canvas.width / 2, canvas.height * 0.1, titleFont, "#ecf0f1", "center");
+        currentContentHeight = canvas.height;
+    }
+
+    function drawPlaceholderScreen() {
+        const d = world[currentScreenY][currentScreenX];
+        const titleSize = getResponsiveFontSize(18, 3, 26);
+        const textSize = getResponsiveFontSize(15, 2, 20);
+        drawText(d.name, canvas.width / 2, canvas.height / 2 - 25, `bold ${titleSize}px 'Press Start 2P'`, "#ecf0f1", "center");
+        drawText("Inaccessible Zone", canvas.width / 2, canvas.height / 2 + 15, `${textSize}px 'Roboto'`, "#7f8c8d", "center");
+        currentContentHeight = canvas.height;
+    }
+
+    function drawCurrentScreen() {
+        const t = world[currentScreenY][currentScreenX].type;
+        if (t === "presentation") drawPresentationScreen();
+        else if (t === "skills_projects") drawSkillsProjectsScreen();
+        else if (t === "blog") drawBlogScreen();
+        else if (t === "game_zone") drawGameZoneScreen();
+        else drawPlaceholderScreen();
+    }
+    
+    function drawStaticTransitionLabels() {
+        if (canvas.width < 768 || canvas.height < 500) return; // mobile hide
+        const labelSize = getResponsiveFontSize(12, 1.6, 16);
+        const font = `bold ${labelSize}px 'Press Start 2P'`, col = "#bdc3c7", off = 25;
+        const allowed = (x, y) => allowedScreenCoords.some(c => c.x === x && c.y === y);
+        if (currentScreenX === 1 && currentScreenY === 1) {
+            if (allowed(0, 1)) drawText("← " + world[1][0].shortName, off, canvas.height / 2, font, col, "left", "middle");
+            if (allowed(2, 1)) drawText(world[1][2].shortName + " →", canvas.width - off, canvas.height / 2, font, col, "right", "middle");
+            if (allowed(1, 2)) drawText("↓ " + world[2][1].shortName, canvas.width / 2, canvas.height - off, font, col, "center", "bottom");
+        } else if (currentScreenX === 0 && currentScreenY === 1) { drawText(world[1][1].shortName + " →", canvas.width - off, canvas.height / 2, font, col, "right", "middle"); }
+        else if (currentScreenX === 2 && currentScreenY === 1) { drawText("← " + world[1][1].shortName, off, canvas.height / 2, font, col, "left", "middle"); }
+        else if (currentScreenX === 1 && currentScreenY === 2) { drawText("↑ " + world[1][1].shortName, canvas.width / 2, off, font, col, "center", "top"); }
+    }
+
+    /* ---------- INTERACTION ---------- */
+    function handleMouseMove(e) { const r = canvas.getBoundingClientRect(); globalMouseX = e.clientX - r.left; globalMouseY = e.clientY - r.top; player.x = globalMouseX - player.width / 2; player.y = globalMouseY - player.height / 2; player.x = Math.max(0, Math.min(canvas.width - player.width, player.x)); player.y = Math.max(0, Math.min(canvas.height - player.height, player.y)); const dx = globalMouseX - player.prevMouseX; const dy = globalMouseY - player.prevMouseY; const dist = Math.hypot(dx, dy); if (dist > 1) { player.orientationDx = dx / dist; player.orientationDy = dy / dist; } player.prevMouseX = globalMouseX; player.prevMouseY = globalMouseY; }
+    const isHovered = el => globalMouseX >= el.x && globalMouseX <= el.x + el.width && globalMouseY >= el.y && globalMouseY <= el.y + el.height;
+
+    function handleCanvasClick() {
+        if (messageModal.style.display === 'flex') return;
+        for (const el of currentInteractiveElements) {
+            if (isHovered(el)) {
+                if (el.action === "open_link") { window.open(el.url, "_blank"); return; }
+                if (el.action === "show_article") {
+                    showModal(el.title, "<em>Loading…</em>");
+                    fetch(el.path).then(r => { if (!r.ok) throw new Error("Not found"); return r.text(); }).then(md => { modalMessageText.innerHTML = `<em>${el.date}</em><hr><div class="md-content">${marked.parse(md)}</div>`; }).catch(err => { modalMessageText.innerHTML = `<p style="color:#c0392b">Error loading article</p>`; });
+                    return;
                 }
             }
-            const edgeThreshold = 0.10; let nextPotentialX = currentScreenX; let nextPotentialY = currentScreenY;
-            if (globalMouseX < canvas.width * edgeThreshold && currentScreenX > 0) { nextPotentialX = currentScreenX - 1; } else if (globalMouseX > canvas.width * (1 - edgeThreshold) && currentScreenX < world[0].length - 1) { nextPotentialX = currentScreenX + 1; } else if (globalMouseY < canvas.height * edgeThreshold && currentScreenY > 0) { nextPotentialY = currentScreenY - 1; } else if (globalMouseY > canvas.height * (1 - edgeThreshold) && currentScreenY < world.length - 1) { nextPotentialY = currentScreenY + 1; }
-            if ((nextPotentialX !== currentScreenX || nextPotentialY !== currentScreenY) && isScreenTransitionAllowed(nextPotentialX, nextPotentialY)) {
-                currentScreenX = nextPotentialX; currentScreenY = nextPotentialY;
-                if (globalMouseX < canvas.width * edgeThreshold) player.x = canvas.width - player.width - 1; else if (globalMouseX > canvas.width * (1 - edgeThreshold)) player.x = 1; else player.x = globalMouseX - player.width / 2;
-                if (globalMouseY < canvas.height * edgeThreshold) player.y = canvas.height - player.height - 1; else if (globalMouseY > canvas.height * (1 - edgeThreshold)) player.y = 1; else player.y = globalMouseY - player.height / 2;
-                player.x = Math.max(0, Math.min(canvas.width - player.width, player.x)); player.y = Math.max(0, Math.min(canvas.height - player.height, player.y));
-                player.prevMouseX = player.x + player.width / 2; player.prevMouseY = player.y + player.height / 2;
-                updateScreenInfo(); currentInteractiveElements = [];
+        }
+        const edge = 0.1; let nx = currentScreenX, ny = currentScreenY;
+        if (globalMouseX < canvas.width * edge) nx--;
+        else if (globalMouseX > canvas.width * (1 - edge)) nx++;
+        else if (globalMouseY < canvas.height * edge) ny--;
+        else if (globalMouseY > canvas.height * (1 - edge)) ny++;
+
+        if (nx !== currentScreenX || ny !== currentScreenY) {
+            if (allowedScreenCoords.some(c => c.x === nx && c.y === ny)) {
+                currentScreenX = nx; currentScreenY = ny; scrollOffset = 0;
+                screenInfoElement.textContent = world[ny][nx].name;
             }
         }
-        
-        function handleResize() { 
-            canvas.width = window.innerWidth; 
-            canvas.height = window.innerHeight; 
-            const currentCanvasCenterX = canvas.width / 2; 
-            const currentCanvasCenterY = canvas.height / 2; 
-            player.prevMouseX = currentCanvasCenterX; 
-            player.prevMouseY = currentCanvasCenterY; 
-            player.x = currentCanvasCenterX - player.width / 2; 
-            player.y = currentCanvasCenterY - player.height / 2; 
-            updateScreenInfo(); 
-            currentInteractiveElements = []; 
-        }
+    }
 
-        function gameLoop() { 
-            clearCanvas(); 
-            drawCurrentScreenContent(); 
-            drawStaticTransitionLabels(); 
-            drawPlayer(); 
-            requestAnimationFrame(gameLoop); 
-        }
+    /* ---------- PLAYER DRAWING ---------- */
+    function drawPlayer() {
+        ctx.fillStyle = "rgba(0,0,0,.25)"; ctx.beginPath(); ctx.ellipse(player.x + player.width / 2, player.y + player.height + 2, player.width / 2, 4, 0, 0, 2 * Math.PI); ctx.fill();
+        ctx.fillStyle = player.color; ctx.fillRect(player.x, player.y, player.width, player.height);
+        ctx.strokeStyle = player.outlineColor; ctx.lineWidth = 2; ctx.strokeRect(player.x, player.y, player.width, player.height);
+        ctx.fillStyle = "#000"; const es = 3, eo = 4;
+        if (player.orientationDy < -0.5) { ctx.fillRect(player.x + eo, player.y + eo, es, es); ctx.fillRect(player.x + player.width - eo - es, player.y + eo, es, es); }
+        else if (player.orientationDy > 0.5) { ctx.fillRect(player.x + eo, player.y + player.height - eo - es, es, es); ctx.fillRect(player.x + player.width - eo - es, player.y + player.height - eo - es, es, es); }
+        else if (player.orientationDx < -0.5) { ctx.fillRect(player.x + eo, player.y + eo, es, es); ctx.fillRect(player.x + eo, player.y + player.height - eo - es, es, es); }
+        else if (player.orientationDx > 0.5) { ctx.fillRect(player.x + player.width - eo - es, player.y + eo, es, es); ctx.fillRect(player.x + player.width - eo - es, player.y + player.height - eo - es, es, es); }
+        else { ctx.fillRect(player.x + eo, player.y + eo, es, es); ctx.fillRect(player.x + player.width - eo - es, player.y + eo, es, es); }
+    }
 
-        function init() { 
-            loadSkillsAndProjectsData();
-            canvas.width = window.innerWidth; canvas.height = window.innerHeight; 
-            player.x = canvas.width / 2 - player.width / 2; player.y = canvas.height / 2 - player.height / 2; 
-            player.prevMouseX = player.x + player.width / 2; player.prevMouseY = player.y + player.height / 2; 
-            canvas.addEventListener('mousemove', handleMouseMove); 
-            canvas.addEventListener('click', handleCanvasClick); 
-            window.addEventListener('resize', handleResize); 
-            updateScreenInfo(); 
-            gameLoop(); 
-        }
+    /* ---------- MODAL HELPERS ---------- */
+    const messageModal = document.getElementById("messageModal");
+    const modalTitleElement = document.getElementById("modalTitle");
+    const modalMessageText = document.getElementById("modalMessageText");
+    const showModal = (title, html) => { modalTitleElement.textContent = title; modalMessageText.innerHTML = html; messageModal.style.display = "flex"; canvas.style.cursor = "default"; };
+    const closeModal = () => { messageModal.style.display = "none"; canvas.style.cursor = "none"; };
+    document.getElementById("modalCloseButton").onclick = closeModal;
+    document.getElementById("modalCloseX").onclick = closeModal;
+    messageModal.addEventListener("click", (e) => { if (e.target === messageModal) closeModal(); });
 
-        window.onload = init;
-    </script>
+    /* ---------- CORE LOOP & INIT ---------- */
+    function gameLoop() {
+        ctx.fillStyle = world[currentScreenY][currentScreenX].color;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        drawCurrentScreen();
+        drawStaticTransitionLabels();
+        drawPlayer();
+        requestAnimationFrame(gameLoop);
+    }
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        player.x = canvas.width / 2 - player.width / 2;
+        player.y = canvas.height / 2 - player.height / 2;
+        player.prevMouseX = player.x + player.width / 2;
+        player.prevMouseY = player.y + player.height / 2;
+        scrollOffset = 0; // Reset scroll on resize
+    }
+
+    function init() {
+        resizeCanvas();
+        loadSkillsAndProjectsData();
+        screenInfoElement.textContent = world[currentScreenY][currentScreenX].name;
+        canvas.addEventListener("mousemove", handleMouseMove);
+        canvas.addEventListener("click", handleCanvasClick);
+        window.addEventListener("resize", resizeCanvas);
+        gameLoop();
+    }
+    window.onload = init;
+  </script>
 </body>
 </html>
