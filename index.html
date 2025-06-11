@@ -243,7 +243,7 @@
         y = wrapText("Welcome!", contentW, titleLineHeight, titleFont, canvas.width / 2, y, "#ecf0f1", "center") + titleLineHeight;
         y += 20;
 
-        const intro = "I am Rayane Hachemi, a creative and passionate Machine-Learning Engineer interested in RL and LLMs agents. This personal website is still under construction (by Gemini). Feel free to explore it!";
+        const intro = "I am Rayane Hachemi, a creative and passionate Machine-Learning Engineer interested in RL and LLMs agents. This personal website is still under construction (by Gemini). Feel free to explore it! Hint: you can navigate to different sections by clicking on the side of the screen.";
         const introSize = getResponsiveFontSize(15, 2, 19);
         const introLineHeight = introSize * 1.5;
         y = wrapText(intro, contentW, introLineHeight, `${introSize}px 'Roboto'`, canvas.width / 2, y, "#bdc3c7", "center") + introLineHeight;
@@ -390,7 +390,7 @@
         currentContentHeight = canvas.height;
     }
     
-    // NEW: Replaces the old text labels with universal, animated arrows
+    // Replace the entire drawNavigationHints function with this:
     function drawNavigationHints() {
         const allowed = (x, y) => allowedScreenCoords.some(c => c.x === x && c.y === y);
         const canGoLeft = allowed(currentScreenX - 1, currentScreenY);
@@ -398,21 +398,35 @@
         const canGoUp = allowed(currentScreenX, currentScreenY - 1);
         const canGoDown = allowed(currentScreenX, currentScreenY + 1);
 
-        // Pulsing alpha for a subtle animation
-        const pulse = 0.6 + Math.sin(Date.now() * 0.002) * 0.4;
-        ctx.fillStyle = `rgba(255, 255, 255, ${pulse * 0.5})`;
+        const proximityThreshold = canvas.width * 0.2; // How close player needs to be to highlight
+
+        // Helper to calculate highlight based on distance
+        const getHighlight = (dist) => Math.max(0, 1 - (dist / proximityThreshold));
+
+        const highlightLeft = getHighlight(player.x);
+        const highlightRight = getHighlight(canvas.width - player.x);
+        const highlightUp = getHighlight(player.y);
+        const highlightDown = getHighlight(canvas.height - player.y);
+
+        const drawArrow = (char, x, y, highlight) => {
+            const baseOpacity = 0.4;
+            const baseSize = 50;
+            const finalOpacity = baseOpacity + (1 - baseOpacity) * highlight;
+            const finalSize = baseSize + (25 * highlight); // Grow up to 25px
+            
+            ctx.fillStyle = `rgba(236, 240, 241, ${finalOpacity})`;
+            ctx.font = `bold ${finalSize}px 'Roboto'`;
+            drawText(char, x, y + finalSize/3, ctx.font, ctx.fillStyle, 'center', 'middle');
+        };
+
+        const edgePad = 40;
+        const vPos = canvas.height / 2;
+        const hPos = canvas.width / 2;
         
-        const arrowSize = getResponsiveFontSize(30, 5, 50);
-        ctx.font = `${arrowSize}px 'Roboto'`;
-
-        const vOffset = canvas.height / 2 + arrowSize / 3;
-        const hOffset = canvas.width / 2;
-        const edgePad = 25;
-
-        if(canGoLeft) drawText('<', edgePad, vOffset, ctx.font, ctx.fillStyle, 'center');
-        if(canGoRight) drawText('>', canvas.width - edgePad, vOffset, ctx.font, ctx.fillStyle, 'center');
-        if(canGoUp) drawText('^', hOffset, edgePad + arrowSize/2, ctx.font, ctx.fillStyle, 'center');
-        if(canGoDown) drawText('v', hOffset, canvas.height - edgePad, ctx.font, ctx.fillStyle, 'center');
+        if (canGoLeft) drawArrow('<', edgePad, vPos, highlightLeft);
+        if (canGoRight) drawArrow('>', canvas.width - edgePad, vPos, highlightRight);
+        if (canGoUp) drawArrow('^', hPos, edgePad, highlightUp);
+        if (canGoDown) drawArrow('v', hPos, canvas.height - edgePad, highlightDown);
     }
 
     function drawCurrentScreen() {
