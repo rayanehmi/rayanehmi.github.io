@@ -1,562 +1,307 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>Interactive Portfolio – Rayane Hachemi</title>
-
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
-  <style>
-    /* ---------- GLOBAL ---------- */
-    * { box-sizing: border-box; }
-
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden; /* Prevent body scrollbars on desktop */
-      background: #2c3e50;
-      font-family: "Roboto", sans-serif;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .game-container {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
-    }
-
-    canvas {
-      width: 100%;
-      height: 100%;
-      display: block;
-      background: #000;
-      cursor: none;
-    }
-
-    #screen-info {
-      display: none; /* Disabled for now */
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 10px 20px;
-      background: rgba(20, 30, 40, 0.85);
-      color: #ecf0f1;
-      border-radius: 8px;
-      font-family: "Press Start 2P", cursive;
-      font-size: clamp(0.8em, 1.4vw, 1.1em);
-      text-align: center;
-      z-index: 10;
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
-      pointer-events: none;
-    }
-
-    /* ---------- MODAL ---------- */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.75);
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      cursor: default;
-    }
-
-    .modal-content {
-      position: relative;
-      background: #f1f1f1;
-      color: #2c3e50;
-      width: 100%;
-      max-width: 800px;
-      max-height: 90vh;
-      border: 2px solid #34495e;
-      border-radius: 10px;
-      padding: 20px 30px;
-      overflow-y: auto;
-      overflow-x: hidden;
-      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.35);
-    }
-
-    @media (max-width: 700px) {
-      .modal-content {
-        max-width: 95vw;
-        padding: 15px 18px;
-      }
-    }
-
-    .close-button {
-      position: absolute;
-      top: 8px;
-      right: 18px;
-      font-size: 28px;
-      font-weight: bold;
-      color: #e74c3c;
-      cursor: pointer;
-      line-height: 1;
-    }
-    .close-button:hover { color: #c0392b; }
-
-    /* markdown inside modal */
-    .md-content { word-wrap: break-word; }
-    .md-content img { max-width: 100%; height: auto; border-radius: 4px; }
-    .md-content h1,
-    .md-content h2,
-    .md-content h3 {
-      font-family: "Press Start 2P", cursive;
-      color: #34495e;
-      margin: 24px 0 10px;
-    }
-    .md-content a { color: #2980b9; font-weight: bold; }
-    .md-content code {
-      background: #e3e6e8;
-      border: 1px solid #bdc3c7;
-      padding: 2px 5px;
-      border-radius: 4px;
-      font-family: monospace;
-      word-break: break-all;
-    }
-    .md-content pre {
-      background: #e3e6e8;
-      border: 1px solid #bdc3c7;
-      padding: 10px;
-      border-radius: 5px;
-      overflow-x: auto;
-      white-space: pre-wrap; /* Ensures wrapping of long lines */
-      word-wrap: break-word;
-    }
-     .md-content pre code {
-        background: transparent;
-        border: none;
-        padding: 0;
-     }
-  </style>
-</head>
-
-<body>
-  <div class="game-container">
-    <canvas id="gameCanvas"></canvas>
-    <div id="screen-info">Loading…</div>
-  </div>
-
-  <div id="messageModal" class="modal">
-    <div class="modal-content">
-      <span id="modalCloseX" class="close-button">&times;</span>
-      <h3 id="modalTitle" style="font-family: 'Press Start 2P', cursive; color: #e74c3c; margin-top: 0;">Notification</h3>
-      <div id="modalMessageText" class="md-content"></div>
-      <button id="modalCloseButton" style="
-          font-family:'Press Start 2P',cursive;
-          background:#e74c3c;
-          color:#fff;
-          padding:12px 20px;
-          border:none;
-          border-radius:8px;
-          cursor:pointer;
-          margin:25px auto 0;
-          display:block;
-          font-size:0.8em;">CLOSE</button>
-    </div>
-  </div>
-
-  <script>
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
-
-    /* ---------- STATE ---------- */
-    const player = { width: 22, height: 22, x: 0, y: 0, color: "#2ecc71", outlineColor: "#27ae60", orientationDx: 0, orientationDy: -1, prevMouseX: 0, prevMouseY: 0 };
-    const world = [ [ { color: "#1f2c38", name: "Forbidden Zone Alpha", type: "placeholder" }, { color: "#1f2c38", name: "Forbidden Zone Beta", type: "placeholder" }, { color: "#1f2c38", name: "Forbidden Zone Gamma", type: "placeholder" } ], [ { color: "#4a6b82", name: "Skills & Projects", type: "skills_projects", shortName: "Skills" }, { color: "#34495e", name: "Welcome – Rayane Hachemi", type: "presentation", shortName: "Home" }, { color: "#dde4e8", name: "My Blog", type: "blog", shortName: "Blog" } ], [ { color: "#1f2c38", name: "Forbidden Zone Delta", type: "placeholder" }, { color: "#212f3c", name: "Retro Arcade", type: "game_zone", shortName: "Arcade" }, { color: "#1f2c38", name: "Forbidden Zone Epsilon", type: "placeholder" } ] ];
-    let currentScreenX = 1, currentScreenY = 1;
-    const allowedScreenCoords = [ { x: 1, y: 1 }, { x: 0, y: 1 }, { x: 2, y: 1 }, { x: 1, y: 2 } ];
-    const screenInfoElement = document.getElementById("screen-info");
-    let cachedSkills = null, cachedProjects = null;
-    let currentInteractiveElements = [];
-    let globalMouseX = 0, globalMouseY = 0;
-
-    /* ---------- SCROLL MANAGEMENT ---------- */
-    let scrollOffset = 0;
-    let currentContentHeight = 0;
-    const SCROLLABLE_TYPES = ["skills_projects", "blog", "presentation"];
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rayane HACHEMI - Personal Page</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     
-    window.addEventListener("wheel", (e) => {
-      if (!SCROLLABLE_TYPES.includes(world[currentScreenY][currentScreenX].type)) return;
-      const delta = e.deltaY;
-      const maxScroll = Math.max(currentContentHeight - canvas.height, 0);
-      scrollOffset = Math.min(0, Math.max(-maxScroll, scrollOffset - delta));
-    });
-
-    let touchStartY = null;
-    canvas.addEventListener("touchstart", (e) => { if (SCROLLABLE_TYPES.includes(world[currentScreenY][currentScreenX].type)) { touchStartY = e.touches[0].clientY; } }, { passive: true });
-    canvas.addEventListener("touchmove", (e) => {
-      if (touchStartY === null) return;
-      const touchY = e.touches[0].clientY;
-      const delta = touchY - touchStartY;
-      const maxScroll = Math.max(currentContentHeight - canvas.height, 0);
-      scrollOffset = Math.min(0, Math.max(-maxScroll, scrollOffset + delta));
-      touchStartY = touchY;
-      if (SCROLLABLE_TYPES.includes(world[currentScreenY][currentScreenX].type)) e.preventDefault();
-    }, { passive: false });
-    canvas.addEventListener("touchend", () => touchStartY = null);
-    canvas.addEventListener("touchcancel", () => touchStartY = null);
-
-    /* ---------- UTILS ---------- */
-    const getResponsiveFontSize = (min, preferredVw, max) => {
-        const vw = canvas.width / 100;
-        const preferredSize = vw * preferredVw;
-        return Math.max(min, Math.min(preferredSize, max));
-    }
-    const drawText = (txt, x, y, font, color, align = "left", baseline = "top") => { ctx.font = font; ctx.fillStyle = color; ctx.textAlign = align; ctx.textBaseline = baseline; ctx.fillText(txt, x, y); };
-    const drawRoundedRect = (x,y,w,h,r,fFill,fStroke=null,lw=2) => { ctx.beginPath(); ctx.moveTo(x+r, y); ctx.lineTo(x+w-r, y); ctx.quadraticCurveTo(x+w, y, x+w, y+r); ctx.lineTo(x+w, y+h-r); ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h); ctx.lineTo(x+r, y+h); ctx.quadraticCurveTo(x, y+h, x, y+h-r); ctx.lineTo(x, y+r); ctx.quadraticCurveTo(x, y, x+r, y); ctx.closePath(); if (fFill) { ctx.fillStyle = fFill; ctx.fill(); } if (fStroke) { ctx.lineWidth = lw; ctx.strokeStyle = fStroke; ctx.stroke(); } };
-    const wrapText = (txt,maxW,lineH,font,x,y,color,align="left") => { ctx.font=font; ctx.fillStyle=color; ctx.textAlign=align; const words=txt.split(" "); let line=""; let curY=y; words.forEach((w,i)=>{ const test=line+w+" "; if(ctx.measureText(test).width>maxW&&i>0){ ctx.fillText(line,x,curY); line=w+" "; curY+=lineH; }else{ line=test; } }); ctx.fillText(line,x,curY); return curY; }; // FIX: Return position of last line's baseline
-    const measureHeight = (txt,maxW,lineH,font) => { ctx.font=font; const words=txt.split(" "); let line=""; let lines=1; if(!txt) return 0; words.forEach((w,i)=>{ const test=line+w+" "; if(ctx.measureText(test).width>maxW&&i>0){ line=w+" "; lines++; }else line=test; }); return lines*lineH; };
-
-    /* ---------- DATA LOADING ---------- */
-    async function loadSkillsAndProjectsData() {
-        try {
-            const [s, p] = await Promise.all([fetch("documents/skills.md"), fetch("documents/projects.md")]);
-            cachedSkills = (await s.text()).split("\n").filter(l => l.trim().startsWith("- ")).map(l => l.trim().slice(2).trim());
-            cachedProjects = (await p.text()).split(/\s*---\s*/).map(block => { if (!block.trim()) return null; const lines = block.trim().split("\n"); const title = lines.shift().replace(/^##\s*/, "").trim(); const desc = lines.join("\n").trim(); return { title, desc }; }).filter(Boolean);
-        } catch (err) {
-            console.error(err); cachedSkills = ["Error loading skills"]; cachedProjects = [{ title: "Error", desc: "Could not load projects" }];
+    <!-- Load Inter font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS for Brutalist Design -->
+    <style>
+        /* Set base font */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Use a light gray for a slightly softer brutalist bg */
         }
-    }
-
-    /* ---------- DRAWING SCREENS ---------- */
-    function drawPresentationScreen() {
-        currentInteractiveElements = [];
-        const padding = canvas.width * 0.07;
-        const contentW = canvas.width - 2 * padding;
-        let y = canvas.height * 0.15 + scrollOffset;
-
-        const titleSize = getResponsiveFontSize(22, 5, 38);
-        const titleFont = `bold ${titleSize}px 'Press Start 2P'`;
-        const titleLineHeight = titleSize * 1.2;
-        y = wrapText("Welcome!", contentW, titleLineHeight, titleFont, canvas.width / 2, y, "#ecf0f1", "center") + titleLineHeight;
-        y += 20;
-
-        const intro = "I am Rayane Hachemi, a creative and passionate Machine-Learning Engineer interested in RL and LLMs agents. This personal website is still under construction (by Gemini). Feel free to explore it! Hint: you can navigate to different sections by clicking on the side of the screen.";
-        const introSize = getResponsiveFontSize(15, 2, 19);
-        const introLineHeight = introSize * 1.5;
-        y = wrapText(intro, contentW, introLineHeight, `${introSize}px 'Roboto'`, canvas.width / 2, y, "#bdc3c7", "center") + introLineHeight;
-        y += 20;
-
-        const links = [{ id: "email", txt: "EMAIL", url: "mailto:rhmi@outlook.fr" }, { id: "lin", txt: "LINKEDIN", url: "https://www.linkedin.com/in/rhmi/" }, { id: "git", txt: "GITHUB", url: "https://github.com/rayanehmi" }, { id: "cv", txt: "DOWNLOAD CV", url: "documents/cv.pdf" }];
-        const linkSize = getResponsiveFontSize(13, 1.8, 18);
-        const linkFont = `${linkSize}px 'Press Start 2P'`;
-        const linkHeight = linkSize + 22;
-        const spacing = 18;
-        links.forEach(l => {
-            ctx.font = linkFont;
-            const w = ctx.measureText(l.txt).width;
-            const x = canvas.width / 2 - w / 2;
-            const hovered = globalMouseX >= x && globalMouseX <= x + w && globalMouseY >= y && globalMouseY <= y + linkHeight;
-            drawText(l.txt, canvas.width / 2, y + linkHeight / 2, linkFont, hovered ? "#e74c3c" : "#3498db", "center", "middle");
-            currentInteractiveElements.push({ ...l, action: "open_link", x, y, width: w, height: linkHeight });
-            y += linkHeight + spacing;
-        });
-
-        currentContentHeight = y - scrollOffset + 50;
-    }
-
-    function drawNavigationHints() {
-        const allowed = (x, y) => allowedScreenCoords.some(c => c.x === x && c.y === y);
-        const canGoLeft = allowed(currentScreenX - 1, currentScreenY);
-        const canGoRight = allowed(currentScreenX + 1, currentScreenY);
-        const canGoUp = allowed(currentScreenX, currentScreenY - 1);
-        const canGoDown = allowed(currentScreenX, currentScreenY + 1);
-
-        const proximityThreshold = canvas.width * 0.2;
-
-        // Helper to calculate highlight based on distance
-        const getHighlight = (dist) => Math.max(0, 1 - (dist / proximityThreshold));
-
-        const highlightLeft = getHighlight(player.x);
-        const highlightRight = getHighlight(canvas.width - player.x);
-        const highlightUp = getHighlight(player.y);
-        const highlightDown = getHighlight(canvas.height - player.y);
-
-        const drawArrow = (char, x, y, highlight) => {
-            // The line "if (highlight <= 0) return;" that I added before
-            // has been REMOVED from here to restore the correct behavior.
-            
-            const baseOpacity = 0.5; // A subtle base visibility
-            const baseSize = 45;
-
-            // Opacity and size now correctly scale from the base state to the fully highlighted state
-            const finalOpacity = baseOpacity + ((1 - baseOpacity) * highlight);
-            const finalSize = baseSize + (35 * highlight); // Grow up to 25px
-            
-            ctx.fillStyle = `rgba(236, 240, 241, ${finalOpacity})`;
-            ctx.font = `bold ${finalSize}px 'Roboto'`;
-            drawText(char, x, y, ctx.font, ctx.fillStyle, 'center', 'middle');
-        };
-
-        const edgePad = 40;
-        const vPos = canvas.height / 2;
-        const hPos = canvas.width / 2;
         
-        if (canGoLeft) drawArrow('<', edgePad, vPos, highlightLeft);
-        if (canGoRight) drawArrow('>', canvas.width - edgePad, vPos, highlightRight);
-        if (canGoUp) drawArrow('^', hPos, edgePad, highlightUp);
-        if (canGoDown) drawArrow('v', hPos, canvas.height - edgePad, highlightDown);
-    }
+        /* Use a mono font for tech-related text */
+        .font-mono {
+            font-family: 'Space Mono', monospace;
+        }
 
-    function drawDesktopNavLabels() {
-        // Only run on screens wider than 800px
-        if (canvas.width < 800) return;
+        /* Ensure smooth scrolling for anchors */
+        html {
+            scroll-behavior: smooth;
+        }
 
-        const allowed = (x, y) => allowedScreenCoords.some(c => c.x === x && c.y === y);
-        const labelSize = getResponsiveFontSize(12, 1.2, 14);
-        const font = `bold ${labelSize}px 'Press Start 2P'`;
-        const color = "rgba(236, 240, 241, 0.7)";
+        /* Define the core brutalist card element */
+        .brutalist-card {
+            border: 3px solid #000;
+            background: #fff;
+            /* The signature hard shadow */
+            box-shadow: 6px 6px 0px #000;
+            transition: all 0.2s ease-in-out;
+        }
+
+        /* Interactive hover effect for cards */
+        .brutalist-card:hover {
+            box-shadow: 8px 8px 0px #000;
+            transform: translate(-2px, -2px);
+        }
+
+        /* Brutalist button style */
+        .brutalist-button {
+            border: 3px solid #000;
+            background-color: #fde047; /* Stark, vibrant yellow accent */
+            color: #000;
+            font-weight: 700; /* Bold */
+            padding: 10px 20px;
+            box-shadow: 4px 4px 0px #000;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+
+        .brutalist-button:hover {
+            box-shadow: 6px 6px 0px #000;
+            transform: translate(-2px, -2px);
+            background-color: #facc15; /* Slightly darker yellow on hover */
+        }
         
-        // Increased offset to place text next to the graphical arrow
-        const h_offset = 85; 
-        const v_offset = 70;
+        /* Brutalist tag style */
+        .tag {
+            display: inline-block;
+            background-color: #fde047;
+            padding: 2px 8px;
+            font-size: 0.75rem; /* 12px */
+            font-weight: 700;
+            border: 2px solid #000;
+            white-space: nowrap;
+        }
         
-        const vPos = canvas.height / 2;
-        const hPos = canvas.width / 2;
+        /* Custom border thickness */
+        .border-b-3 { border-bottom-width: 3px; }
+        .border-t-3 { border-top-width: 3px; }
 
-        // --- STRINGS EDITED TO REMOVE TEXT-BASED ARROWS ---
-        if (allowed(currentScreenX - 1, currentScreenY)) {
-            drawText(`${world[currentScreenY][currentScreenX - 1].shortName}`, h_offset, vPos, font, color, 'left', 'middle');
+        /* Custom message box for copy feedback */
+        #copy-message {
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
         }
-        if (allowed(currentScreenX + 1, currentScreenY)) {
-            drawText(`${world[currentScreenY][currentScreenX + 1].shortName}`, canvas.width - h_offset, vPos, font, color, 'right', 'middle');
+        
+        #copy-message.visible {
+            opacity: 1;
         }
-        if (allowed(currentScreenX, currentScreenY - 1)) {
-            drawText(`${world[currentScreenY - 1][currentScreenX].shortName}`, hPos, v_offset, font, color, 'center', 'top');
-        }
-        if (allowed(currentScreenX, currentScreenY + 1)) {
-            drawText(`${world[currentScreenY + 1][currentScreenX].shortName}`, hPos, canvas.height - v_offset, font, color, 'center', 'bottom');
-        }
-    }
 
-    function drawSkillsProjectsScreen() {
-        currentInteractiveElements = [];
-        const isMobile = canvas.width < 768;
-        const pad = canvas.width * (isMobile ? 0.08 : 0.05);
-        const titleSize = getResponsiveFontSize(20, 4, 28);
-        const sectionSize = getResponsiveFontSize(16, 2.4, 24);
-        const itemSize = getResponsiveFontSize(14, 1.9, 18);
-        const titleFont = `bold ${titleSize}px 'Press Start 2P'`, itemFont = `${itemSize}px 'Roboto'`, sectionFont = `bold ${sectionSize}px 'Press Start 2P'`;
-        const textColor = "#ecf0f1", hl = "#f1c40f";
+    </style>
+</head>
+<body class="bg-gray-100 text-black">
 
-        let y = canvas.height * 0.1 + scrollOffset;
-        const titleMaxWidth = canvas.width - pad * 2;
-        const titleLineHeight = titleSize * 1.2;
-        y = wrapText("Skills & Projects", titleMaxWidth, titleLineHeight, titleFont, canvas.width / 2, y, textColor, "center") + titleLineHeight;
-        y += 20;
+    <!-- Main Content Container -->
+    <div class="max-w-6xl mx-auto p-4 sm:p-8">
 
-        /* SKILLS */
-        let sx = pad, sy = y;
-        drawText("Skills:", sx, sy, sectionFont, textColor);
-        sy += sectionSize + 15;
+        <!-- HEADER / NAV -->
+        <header class="flex justify-between items-center border-b-3 border-black pb-4 mb-16 sm:mb-24 font-mono">
+            <div class="text-2xl font-bold">
+                PERSONAL PAGE
+            </div>
+            <nav class="hidden sm:flex space-x-6 text-lg">
+                <a href="#about" class="hover:underline hover:decoration-yellow-300 hover:decoration-4">About</a>
+                <a href="#projects" class="hover:underline hover:decoration-yellow-300 hover:decoration-4">Projects</a>
+                <a href="#contact" class="hover:underline hover:decoration-yellow-300 hover:decoration-4">Contact</a>
+            </nav>
+        </header>
 
-        const skillsStartX = sx + 20;
-        const skillsMaxWidth = (isMobile ? canvas.width - pad : canvas.width / 2) - skillsStartX;
-        const skillLineHeight = itemSize * 1.4;
+        <!-- HERO SECTION -->
+        <section id="hero" class="mb-24 sm:mb-32">
+            <div class="inline-block">
+                <h1 class="text-6xl md:text-8xl font-black uppercase tracking-tighter" style="line-height: 0.9;">
+                    Rayane<br>Hachemi
+                </h1>
+            </div>
+            <p class="text-2xl md:text-4xl font-bold text-gray-700 mt-2">
+                Machine Learning Engineer
+            </p>
+            <div class="flex flex-wrap gap-3 mt-6">
+                <span class="tag">AGENTIC AI</span>
+                <span class="tag">REINFORCEMENT LEARNING</span>
+                <span class="tag">LLM & RAG</span>
+            </div>
+        </section>
 
-        if (!cachedSkills) {
-             drawText("Loading…", sx, sy, itemFont, textColor);
-        } else {
-            cachedSkills.forEach(sk => {
-                const itemY = sy;
-                const requiredHeight = measureHeight(sk, skillsMaxWidth, skillLineHeight, itemFont);
-                const hovered = globalMouseX >= sx && globalMouseX <= sx + skillsMaxWidth + 20 && globalMouseY >= itemY && globalMouseY <= itemY + requiredHeight;
+        <!-- ABOUT SECTION -->
+        <section id="about" class="mb-24 sm:mb-32">
+            <h2 class="text-4xl md:text-5xl font-bold mb-8 font-mono">> ABOUT_ME.md</h2>
+            <div class="grid md:grid-cols-3 gap-8 items-start">
+                <div class="md:col-span-1">
+                    <p class="text-3xl leading-snug font-bold">
+                        "My favorite place to be is at the frontier of AI."
+                    </p>
+                </div>
+                <div class="md:col-span-2 space-y-4 text-xl text-gray-800">
+                    <p>I hold a Master's degree in Computer Science, specializing in Artificial Intelligence and Distributed Systems.</p>
+                    <p>Currently, I'm an <strong>Agentic AI Tech Watcher</strong> at Euranova. My role involves building and deploying advanced AI agents, as well as conducting internal training to upskill my colleagues.</p>
+                    <p>I also have experience as a Research Scientist and internship mentor in both Reinforcement Learning (RL) and Large Language Models (LLMs).</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- PROJECTS SECTION -->
+        <section id="projects" class="mb-24 sm:mb-32">
+            <h2 class="text-4xl md:text-5xl font-bold mb-8 font-mono">> PROJECTS/</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                <!-- Project Card: MineGPT -->
+                <div class="brutalist-card p-6">
+                    <h3 class="text-2xl font-bold mb-2">MineGPT</h3>
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        <span class="tag">AGENT</span>
+                        <span class="tag">LLM</span>
+                        <span class="tag">PERSONAL</span>
+                    </div>
+                    <p>A very early LLM agent that plays Minecraft by generating API code in real-time. It was so cool back then (2023) that OpenAI invited me to their Research Access Program.</p>
+                </div>
+				
+				<!-- Project Card: LLMs for fuel prediction -->
+                <div class="brutalist-card p-6">
+                    <h3 class="text-2xl font-bold mb-2">LLMs for fuel prediction</h3>
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        <span class="tag">LLM</span>
+                        <span class="tag">DSPY</span>
+						<span class="tag">COMPETITION</span>
+                    </div>
+                    <p>Competed in the PRC 2025 Data Challenge using an optimized DSPy LLM predictor instead of boring classic models. A world first to the best of my knowledge.</p>
+                </div>
                 
-                // Use the new width and line height to correctly wrap the skill text
-                wrapText(sk, skillsMaxWidth, skillLineHeight, itemFont, skillsStartX, itemY, hovered ? hl : textColor);
-                if (hovered) drawText(">", sx, itemY + requiredHeight / 2, itemFont, hl, "left", "middle");
+                <!-- Project Card: Quasimodo -->
+                <div class="brutalist-card p-6">
+                    <h3 class="text-2xl font-bold mb-2">Quasimodo</h3>
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        <span class="tag">NLP</span>
+                        <span class="tag">AGENT</span>
+                        <span class="tag">PERSONAL</span>
+                    </div>
+                    <p>An autonomous forum moderator able to delete harmful messages. Used both classic NLP and Generative AI. Decommissionned because it was replacing myself...</p>
+                </div>
+				
+				<!-- Project Card: Antisèche -->
+                <div class="brutalist-card p-6">
+                    <h3 class="text-2xl font-bold mb-2">Antisèche (Meeting Agent)</h3>
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        <span class="tag">AGENT</span>
+                        <span class="tag">GWS ADD-ON</span>
+                    </div>
+                    <p>A fully integrated Google Calendar Add-On that helps users prepare for meetings. The fact that it all runs on Google Cloud is more impressive to me than the multi-agent web-search workflow.</p>
+                </div>
 
-                currentInteractiveElements.push({ id: `skill_${sk}`, x: sx, y: itemY, width: skillsMaxWidth + 20, height: requiredHeight, action: "noop" });
-                
-                // Increment sy by the actual measured height of the skill
-                sy += requiredHeight + 15;
-            });
-        }
+                <!-- Project Card: Agentic RAG Audit -->
+                <div class="brutalist-card p-6">
+                    <h3 class="text-2xl font-bold mb-2">Agentic RAG Audit</h3>
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        <span class="tag">CONSULTING</span>
+                        <span class="tag">RAG</span>
+                        <span class="tag">AGENT</span>
+                    </div>
+                    <p>Authored a 25-page expert report providing technical recommendations and strategic advice to a major telecom provider's development team for their RAG chatbot. I magically got an interview a few weeks later.</p>
+                </div>
 
-        /* PROJECTS */
-        let px = isMobile ? pad : canvas.width / 2 + pad * 0.5;
-        let py = isMobile ? sy + 30 : y;
-        drawText("Projects:", px, py, sectionFont, textColor);
-        py += sectionSize + 15;
 
-        const cardW = isMobile ? canvas.width - pad * 2 : Math.min(canvas.width * 0.42, 420);
-        const cardPad = 15;
-        const pTitleSize = getResponsiveFontSize(15, 2, 20);
-        const pDescSize = getResponsiveFontSize(12, 1.6, 16);
-        const pTitleFont = `bold ${pTitleSize}px 'Roboto'`, pDescFont = `${pDescSize}px 'Roboto'`;
-        const lineH = pDescSize * 1.3;
 
-        if (!cachedProjects) drawText("Loading…", px, py, itemFont, textColor);
-        else {
-            cachedProjects.forEach(pr => {
-                const titleH = measureHeight(pr.title, cardW - cardPad * 2, pTitleSize * 1.2, pTitleFont);
-                const descH = measureHeight(pr.desc, cardW - cardPad * 2, lineH, pDescFont);
-                const cardH = cardPad + titleH + 5 + descH + cardPad;
-                const hovered = globalMouseX >= px && globalMouseX <= px + cardW && globalMouseY >= py && globalMouseY <= py + cardH;
-                drawRoundedRect(px, py, cardW, cardH, 8, hovered ? "#567a94" : "#405d72", hovered ? hl : "#6b8ea8");
-                wrapText(pr.title, cardW - cardPad * 2, pTitleSize * 1.2, pTitleFont, px + cardPad, py + cardPad, textColor);
-                wrapText(pr.desc, cardW - cardPad * 2, lineH, pDescFont, px + cardPad, py + cardPad + titleH + 5, "#bdc3c7");
-                py += cardH + 20;
-            });
-        }
-        currentContentHeight = (isMobile ? py : Math.max(sy, py)) - scrollOffset + 40;
-    }
+                <!-- Project Card: Public Sector LLM Support -->
+                <div class="brutalist-card p-6">
+                    <h3 class="text-2xl font-bold mb-2">Public Sector AI Support</h3>
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        <span class="tag">RAG</span>
+                        <span class="tag">SOVEREIGN AI</span>
+                    </div>
+                    <p>Provided expert support and built a one-day full ColBERT RAG pipeline for a public sector partner. No pre-made Azure AI Search allowed in my house, we get our hands dirty here.</p>
+                </div> 
 
-    function drawBlogScreen() {
-        currentInteractiveElements = [];
-        const titleSize = getResponsiveFontSize(20, 4, 28);
-        const itemTitleSize = getResponsiveFontSize(16, 2.3, 22);
-        const metaSize = getResponsiveFontSize(12, 1.5, 14);
-        const titleFont = `bold ${titleSize}px 'Press Start 2P'`, itemTitleFont = `bold ${itemTitleSize}px 'Roboto'`, metaFont = `${metaSize}px 'Roboto'`;
-        const mainColor = "#2c3e50", accent = "#e74c3c";
-        const pad = canvas.width * 0.05;
+            </div>
+        </section>
 
-        let y = canvas.height * 0.1 + scrollOffset;
-        const titleMaxWidth = canvas.width - pad * 2;
-        const titleLineHeight = titleSize * 1.2;
-        y = wrapText("My Blog Corner", titleMaxWidth, titleLineHeight, titleFont, canvas.width / 2, y, accent, "center") + titleLineHeight;
-        y += 20;
+        <!-- CONTACT SECTION -->
+        <section id="contact" class="mb-16">
+            <h2 class="text-4xl md:text-5xl font-bold mb-8 font-mono">> CONNECT</h2>
+            <div class="flex flex-col md:flex-row gap-4">
+                <button id="copy-email-btn" class="brutalist-button text-lg">
+                    EMAIL
+                </button>
+				<a href="https://www.linkedin.com/in/rhmi" target="_blank" rel="noopener noreferrer" class="brutalist-button text-lg text-center">
+                    LINKEDIN
+                </a>
 
-        const articles = [{ id: "blog1", title: "Agentic LLMs in Gaming", date: "June 11, 2025", path: "documents/blog1.md" }, { id: "blog2", title: "Tutorial: How to create a super-human computer virus", date: "June 10, 2025", path: "documents/blog2.md" }];
-        const cardW = Math.min(canvas.width * 0.86, 700);
-        const x = canvas.width / 2 - cardW / 2;
+            </div>
+            <!-- Feedback message for copy action -->
+            <div id="copy-message" class="font-mono mt-4 text-green-700 font-bold text-lg">
+                [COPIED TO CLIPBOARD]
+            </div>
+        </section>
 
-        articles.forEach(a => {
-            const titleLineHeight = itemTitleSize * 1.25;
-            const titleHeight = measureHeight(a.title, cardW - 40, titleLineHeight, itemTitleFont);
-            const cardH = 20 + titleHeight + 10 + metaSize + 15;
-            const hovered = globalMouseX >= x && globalMouseX <= x + cardW && globalMouseY >= y && globalMouseY <= y + cardH;
-            drawRoundedRect(x, y, cardW, cardH, 8, hovered ? "#f8f9fa" : "#ffffff", hovered ? accent : "#bdc3c7");
-            const titleY = wrapText(a.title, cardW - 40, titleLineHeight, itemTitleFont, x + 20, y + 20, hovered ? accent : mainColor);
-            drawText(a.date, x + 20, titleY + titleLineHeight + 5, metaFont, "#7f8c8d");
-            currentInteractiveElements.push({ ...a, type: "blog_article", action: "show_article", x, y, width: cardW, height: cardH });
-            y += cardH + 20;
-        });
-        currentContentHeight = y - scrollOffset + 30;
-    }
+        <!-- FOOTER -->
+        <footer class="border-t-3 border-black pt-6 mt-24 text-center font-mono text-gray-600">
+            <p>// STATUS: EAGER TO LEARN. AT THE FRONTIER OF AI.</p>
+            <p class="mt-2">2025 Rayane Hachemi</p>
+        </footer>
 
-    function drawGameZoneScreen() {
-        currentInteractiveElements = [];
-        const titleSize = getResponsiveFontSize(18, 2.8, 26);
-        const titleFont = `bold ${titleSize}px 'Press Start 2P'`;
-        wrapText("Retro Arcade (under construction)", canvas.width*0.9, titleSize*1.2, titleFont, canvas.width / 2, canvas.height * 0.1, "#ecf0f1", "center");
-        currentContentHeight = canvas.height;
-    }
+    </div> <!-- End of main container -->
 
-    function drawPlaceholderScreen() {
-        const d = world[currentScreenY][currentScreenX];
-        const titleSize = getResponsiveFontSize(18, 3, 26);
-        const textSize = getResponsiveFontSize(15, 2, 20);
-        drawText(d.name, canvas.width / 2, canvas.height / 2 - 25, `bold ${titleSize}px 'Press Start 2P'`, "#ecf0f1", "center");
-        drawText("Inaccessible Zone", canvas.width / 2, canvas.height / 2 + 15, `${textSize}px 'Roboto'`, "#7f8c8d", "center");
-        currentContentHeight = canvas.height;
-    }
+    <!-- JAVASCRIPT for Interactivity -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- 1. Hero Name Scramble Effect (REMOVED) ---
 
-    function drawCurrentScreen() {
-        const t = world[currentScreenY][currentScreenX].type;
-        if (t === "presentation") drawPresentationScreen();
-        else if (t === "skills_projects") drawSkillsProjectsScreen();
-        else if (t === "blog") drawBlogScreen();
-        else if (t === "game_zone") drawGameZoneScreen();
-        else drawPlaceholderScreen();
-    }
+            // --- 2. Copy to Clipboard Functionality ---
+            const copyMessage = document.getElementById('copy-message');
+            let messageTimeout = null;
 
-    /* ---------- INTERACTION ---------- */
-    function handleMouseMove(e) { const r = canvas.getBoundingClientRect(); globalMouseX = e.clientX - r.left; globalMouseY = e.clientY - r.top; player.x = globalMouseX - player.width / 2; player.y = globalMouseY - player.height / 2; player.x = Math.max(0, Math.min(canvas.width - player.width, player.x)); player.y = Math.max(0, Math.min(canvas.height - player.height, player.y)); const dx = globalMouseX - player.prevMouseX; const dy = globalMouseY - player.prevMouseY; const dist = Math.hypot(dx, dy); if (dist > 1) { player.orientationDx = dx / dist; player.orientationDy = dy / dist; } player.prevMouseX = globalMouseX; player.prevMouseY = globalMouseY; }
-    const isHovered = el => globalMouseX >= el.x && globalMouseX <= el.x + el.width && globalMouseY >= el.y && globalMouseY <= el.y + el.height;
+            function copyToClipboard(text, message) {
+                // Use the clipboard fallback from the instructions
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                textArea.style.position = 'fixed'; // Avoid scrolling to bottom
+                textArea.style.top = '0';
+                textArea.style.left = '0';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
 
-    function handleCanvasClick() {
-        if (messageModal.style.display === 'flex') return;
-        for (const el of currentInteractiveElements) {
-            if (isHovered(el)) {
-                if (el.action === "open_link") { window.open(el.url, "_blank"); return; }
-                if (el.action === "show_article") {
-                    showModal(el.title, "<em>Loading…</em>");
-                    fetch(el.path).then(r => { if (!r.ok) throw new Error("Not found"); return r.text(); }).then(md => { modalMessageText.innerHTML = `<em>${el.date}</em><hr><div class="md-content">${marked.parse(md)}</div>`; }).catch(err => { modalMessageText.innerHTML = `<p style="color:#c0392b">Error loading article</p>`; });
-                    return;
+                try {
+                    document.execCommand('copy');
+                    
+                    // Show success message
+                    if (copyMessage) {
+                        copyMessage.textContent = message || '[COPIED TO CLIPBOARD]';
+                        copyMessage.classList.add('visible');
+                        
+                        // Clear previous timeout if one exists
+                        if (messageTimeout) {
+                            clearTimeout(messageTimeout);
+                        }
+                        
+                        // Hide message after 2 seconds
+                        messageTimeout = setTimeout(() => {
+                            copyMessage.classList.remove('visible');
+                        }, 2000);
+                    }
+                } catch (err) {
+                    console.error('Failed to copy: ', err);
+                    if (copyMessage) {
+                        copyMessage.textContent = '[COPY FAILED]';
+                        copyMessage.classList.add('visible');
+                        // ... (hide timeout)
+                    }
                 }
+
+                document.body.removeChild(textArea);
             }
-        }
-        const edge = 0.1; let nx = currentScreenX, ny = currentScreenY;
-        if (globalMouseX < canvas.width * edge) nx--;
-        else if (globalMouseX > canvas.width * (1 - edge)) nx++;
-        else if (globalMouseY < canvas.height * edge) ny--;
-        else if (globalMouseY > canvas.height * (1 - edge)) ny++;
 
-        if (nx !== currentScreenX || ny !== currentScreenY) {
-            if (allowedScreenCoords.some(c => c.x === nx && c.y === ny)) {
-                currentScreenX = nx; currentScreenY = ny; scrollOffset = 0;
-                screenInfoElement.textContent = world[ny][nx].name;
+            // --- 3. Attach Event Listeners to Buttons ---
+            const emailBtn = document.getElementById('copy-email-btn');
+            if (emailBtn) {
+                emailBtn.addEventListener('click', () => {
+                    copyToClipboard('rhmi@outlook.fr', '[EMAIL COPIED]');
+                });
             }
-        }
-    }
 
-    /* ---------- PLAYER DRAWING ---------- */
-    function drawPlayer() {
-        ctx.fillStyle = "rgba(0,0,0,.25)"; ctx.beginPath(); ctx.ellipse(player.x + player.width / 2, player.y + player.height + 2, player.width / 2, 4, 0, 0, 2 * Math.PI); ctx.fill();
-        ctx.fillStyle = player.color; ctx.fillRect(player.x, player.y, player.width, player.height);
-        ctx.strokeStyle = player.outlineColor; ctx.lineWidth = 2; ctx.strokeRect(player.x, player.y, player.width, player.height);
-        ctx.fillStyle = "#000"; const es = 3, eo = 4;
-        if (player.orientationDy < -0.5) { ctx.fillRect(player.x + eo, player.y + eo, es, es); ctx.fillRect(player.x + player.width - eo - es, player.y + eo, es, es); }
-        else if (player.orientationDy > 0.5) { ctx.fillRect(player.x + eo, player.y + player.height - eo - es, es, es); ctx.fillRect(player.x + player.width - eo - es, player.y + player.height - eo - es, es, es); }
-        else if (player.orientationDx < -0.5) { ctx.fillRect(player.x + eo, player.y + eo, es, es); ctx.fillRect(player.x + eo, player.y + player.height - eo - es, es, es); }
-        else if (player.orientationDx > 0.5) { ctx.fillRect(player.x + player.width - eo - es, player.y + eo, es, es); ctx.fillRect(player.x + player.width - eo - es, player.y + player.height - eo - es, es, es); }
-        else { ctx.fillRect(player.x + eo, player.y + eo, es, es); ctx.fillRect(player.x + player.width - eo - es, player.y + eo, es, es); }
-    }
+        });
+    </script>
 
-    /* ---------- MODAL HELPERS ---------- */
-    const messageModal = document.getElementById("messageModal");
-    const modalTitleElement = document.getElementById("modalTitle");
-    const modalMessageText = document.getElementById("modalMessageText");
-    const showModal = (title, html) => { modalTitleElement.textContent = title; modalMessageText.innerHTML = html; messageModal.style.display = "flex"; canvas.style.cursor = "default"; };
-    const closeModal = () => { messageModal.style.display = "none"; canvas.style.cursor = "none"; };
-    document.getElementById("modalCloseButton").onclick = closeModal;
-    document.getElementById("modalCloseX").onclick = closeModal;
-    messageModal.addEventListener("click", (e) => { if (e.target === messageModal) closeModal(); });
-
-    /* ---------- CORE LOOP & INIT ---------- */
-    function gameLoop() {
-        ctx.fillStyle = world[currentScreenY][currentScreenX].color;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        drawCurrentScreen();
-        drawNavigationHints();
-        drawDesktopNavLabels();
-        drawPlayer();
-        requestAnimationFrame(gameLoop);
-    }
-
-    function resizeCanvas() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        player.x = canvas.width / 2 - player.width / 2;
-        player.y = canvas.height / 2 - player.height / 2;
-        player.prevMouseX = player.x + player.width / 2;
-        player.prevMouseY = player.y + player.height / 2;
-        scrollOffset = 0; // Reset scroll on resize
-    }
-
-    function init() {
-        resizeCanvas();
-        loadSkillsAndProjectsData();
-        screenInfoElement.textContent = world[currentScreenY][currentScreenX].name;
-        canvas.addEventListener("mousemove", handleMouseMove);
-        canvas.addEventListener("click", handleCanvasClick);
-        window.addEventListener("resize", resizeCanvas);
-        gameLoop();
-    }
-    window.onload = init;
-  </script>
 </body>
 </html>

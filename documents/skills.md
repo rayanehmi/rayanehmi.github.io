@@ -1,6 +1,0 @@
-- Machine Learning (RL, Supervised)
-- Python (especially RL libraries, JAX & QDAX)
-- Cloud Engineering (Azure AZ-900 certification, GCP practical experience)
-- Generative AI / Agentic AI
-- Software Engineering (Git, CI/CD)
-- Product Ownership & Strategy
